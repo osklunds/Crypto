@@ -1,5 +1,5 @@
 
-module Math
+module Math.GCD
 ( divides
 , gcd
 , eea
