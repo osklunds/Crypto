@@ -38,15 +38,17 @@ newtype BigInt = BigInt Integer
 
 instance Arbitrary BigInt where
   arbitrary = do
-    i <- choose (2,1000000)
+    i <- choose (2,100000)
     return $ BigInt i
 
 unwrap :: BigInt -> Integer
 unwrap (BigInt i) = i
 
 test_powerModulo :: BigInt -> BigInt -> BigInt -> Bool
-test_powerModulo b' e' m' = powerModulo b e m == (b^e `mod` m)
+test_powerModulo b' e' m' = r == (b^e `mod` m) && r >= 0 && r < m
+
   where
     b = unwrap b'
     e = unwrap e'
     m = unwrap m'
+    r = powerModulo b e m
