@@ -9,6 +9,7 @@ module Math.BigInt
 where
 
 import Test.QuickCheck
+import System.Random
 
 -- Used to indicate size of arbitrary values
 data L1000
@@ -73,6 +74,12 @@ instance Integral (BigInt a) where
   toInteger                       = unwrap
   (BigInt a) `quotRem` (BigInt b) = let (a',b') = a `quotRem` b
                                     in  (BigInt a', BigInt b')
+
+instance Random (BigInt a) where
+  randomR (BigInt a, BigInt b) g = let (r, g') = randomR (a, b) g
+                                   in  (BigInt r, g')
+  random g                       = let (r, g') = random g
+                                   in  (BigInt r, g')
 
 
 
