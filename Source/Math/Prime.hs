@@ -11,7 +11,7 @@ where
 import System.Random
 import Test.QuickCheck
 
-import Math.GCD
+import Math.Common
 import Math.PowerModulo
 import Math.BigInt
 

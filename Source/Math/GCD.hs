@@ -1,7 +1,6 @@
 
 module Math.GCD
-( divides
-, gcd
+( gcd
 , eea
 , coprime
 , invMod
@@ -11,10 +10,8 @@ where
 import Prelude hiding (gcd)
 import Test.QuickCheck
 
+import Math.Common
 import Math.BigInt
-
-divides :: Integral a => a -> a -> Bool
-a `divides` b = b `mod` a == 0
 
 gcd :: Integral a => a -> a -> a
 gcd a b

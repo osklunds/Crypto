@@ -4,9 +4,9 @@ module Math.PowerModulo
 )
 where
 
-import Math.BigInt
-
 import Test.QuickCheck
+
+import Math.BigInt
 
 -- powerModulo b e m calculates b^e mod m efficiently
 powerModulo :: (Integral a) => a -> a -> a -> a
