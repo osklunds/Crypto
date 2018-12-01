@@ -1,6 +1,7 @@
 
 module Math.Generation
 ( genPrime
+, genDifferentPrime
 , findNextCoprime
 )
 where
@@ -18,12 +19,21 @@ findNext c n
   | c n       = n
   | otherwise = findNext c $ n+1
 
--- Generates a prime with specified number of bits
-genPrime :: (Random a, Integral a) => a -> Gen a
-genPrime bits = do
-  n <- choose (2^(bits-1),2^bits-1)
-  let p = findNext prime n
-  return p
+-- Generates a prime with b bits
+genPrime :: (RandomGen g, Random a, Integral a) => g -> a -> (a,g)
+genPrime g b = (p,g')
+  where
+    (n,g') = randomR (2^(b-1),2^b-1) g
+    p      = findNext prime n
+
+-- Same as genPrime, but a prime different to p suppliad
+genDifferentPrime :: (RandomGen g, Random a, Integral a) => g -> 
+                     a -> a -> (a,g)
+genDifferentPrime g b p
+  | p == p'   = genDifferentPrime g' b p
+  | otherwise = (p',g')
+  where
+    (p',g') = genPrime g b
 
 -- Finds the next coprime to n, starting from s
 findNextCoprime :: Integral a => a -> a -> a
