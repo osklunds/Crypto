@@ -15,3 +15,4 @@ Change directory to `Source/` and type `ghci`. Now load the module you want to r
 - `Math.Prime` Primality test using Miller Rabin
 - `Math.BigInt` Data types with `Arbitrary` instances giving larger numbers
 - `Math.Generation` Generation of primes and coprimes
+- `RSA` RSA key generation and encryption/decryption/signing/verification
