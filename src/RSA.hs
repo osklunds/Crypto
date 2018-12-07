@@ -1,6 +1,8 @@
 
 module RSA
 ( genKey
+, PubKey
+, PriKey
 , canEncrypt
 , canDecrypt
 , canSign
@@ -46,7 +48,7 @@ genKey g bits
     -- If many bits, this shouldn't be security problem
     -- Remember, this implementation is just for fun, not
     -- for real use
-    ePref = min (n `div` 2) 65535
+    ePref = min (n `div` 2) 65537
     e = findNextCoprime phiN ePref
     d = e `invMod` phiN
 
