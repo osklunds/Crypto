@@ -3,6 +3,7 @@ module Math.Generation
 ( genPrime
 , genDifferentPrime
 , findNextCoprime
+, findNextPrime
 )
 where
 
@@ -38,3 +39,6 @@ genDifferentPrime g b p
 -- Finds the next coprime to n, starting from s
 findNextCoprime :: Integral a => a -> a -> a
 findNextCoprime n s = findNext (coprime n) s
+
+findNextPrime :: (Random a, Integral a) => a -> a
+findNextPrime = findNext prime

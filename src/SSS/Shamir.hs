@@ -1,10 +1,17 @@
 
+-- NOTE: not working yet
+
 module SSS.Shamir
 (
 )
 where
 
 import System.Random
+import Test.QuickCheck
+
+import Math.GCD
+import Math.BigInt
+import Math.Generation
 
 -- poly [c0..cm] x q computes the value of the polynomial
 -- function with coefficients c0 to cm, at x, modulo q.
@@ -27,6 +34,37 @@ share :: (RandomGen g, Random a, Integral a) => g -> a -> a -> a -> a -> ([a], g
 share g s n t q = (map p [1..n], g')
   where 
     (cs,g') = randomList g t q
-    p i     = poly cs i q
+    p i     = poly (s:cs) i q
 
+-- recover pis sis q, recovers the share using the
+-- shares sis from parties pis, modulo q.
+recover :: Integral a => [a] -> [a] -> a -> a
+recover pis sis q = sum prods `mod` q
+  where
+    bis   = map (\pi -> beta pi pis q) pis
+    prods = zipWith (*) bis sis
 
+-- beta i js q calculates beta i, when parties js are involved,
+-- modulo q.
+beta :: Integral a => a -> [a] -> a -> a
+beta _ []     _ = 1
+beta i (j:js) q
+  | i == j    = beta i js q
+  | otherwise = j * ((j-i) `invMod` q) * beta i js q `mod` q
+
+oneTest :: (RandomGen g, Random a, Integral a) => g -> a -> a -> a -> (Bool,g)
+oneTest g s n t = (recover [1..n] sis 1009 == s, g')
+  where
+    (sis,g') = share g s n t 1009
+
+prop_shareRecover :: Int -> BigInt1000 -> BigInt1000 -> BigInt1000 -> BigInt1000 -> Property
+prop_shareRecover g' s' n' t' q' = t > 0 && n > t ==> recover pis sis q == s
+  where
+    g = mkStdGen g'
+    q = findNextPrime q'
+    s = s' `mod` q
+    n = (n' `mod` q) `mod` 10
+    t = (t' `mod` q) `mod` 3
+
+    (sis, g2) = share g s n t q
+    (pis, _)  = randomList g2 (t+1) q
