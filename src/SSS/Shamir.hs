@@ -45,9 +45,13 @@ prop_randomList g n q = n > 0 && q > 2 ==>
 
 -- share g s n t q computes the n secret shares of s, where
 -- the threshold is t, modulo q.
-share :: (RandomGen g, Random a, Integral a) => g -> a -> a -> a -> a -> ([a], g)
-share g s n t q = (map p [1..n], g')
+share :: (RandomGen g, Random a, Integral a) => 
+  g -> a -> a -> a -> a -> ([a], g)
+share g s n t q
+  | not (t > 0 && n >= t && q > 2) = error "Invalid arguments"
+  | otherwise                      = (map p [1..n], g')
   where 
+    -- cs are the list of coefficients
     (cs,g') = randomList g t q
     p i     = poly (s:cs) i q
 
@@ -66,6 +70,9 @@ beta _ []     _ = 1
 beta i (j:js) q
   | i == j    = beta i js q
   | otherwise = j * ((j-i) `invMod` q) * beta i js q `mod` q
+
+-- TODO: test beta by testing with a polynomial, and if beta
+-- used, shoudl give correct val.
 
 oneTest :: (RandomGen g, Random a, Integral a) => g -> a -> a -> a -> (Bool,g)
 oneTest g s n t = (recover [1..n] sis 1009 == s, g')
