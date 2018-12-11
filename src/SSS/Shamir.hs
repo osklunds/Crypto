@@ -17,7 +17,14 @@ import Math.Generation
 -- function with coefficients c0 to cm, at x, modulo q.
 poly :: Integral a => [a] -> a -> a -> a
 poly []     _ _ = 0
-poly (c:cs) x q = c + x*poly cs x q `mod` q
+poly (c:cs) x q = (c + x*poly cs x q `mod` q) `mod` q
+
+prop_poly :: [BigInt10000000] -> BigInt10000000 ->                               BigInt10000000 -> 
+                                 Property
+prop_poly cs x q = q > 2 ==> sum1 == sum2
+  where
+    sum1  = poly cs x q
+    sum2 = (sum $ zipWith (\c e -> c*x^e) cs [0..]) `mod` q
 
 -- Generates a list of n random integers modulo q.
 randomList :: (RandomGen g, Random a, Integral a) => g -> a ->
