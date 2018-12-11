@@ -32,8 +32,16 @@ randomList :: (RandomGen g, Random a, Integral a) => g -> a ->
 randomList g 0 _ = ([],g)
 randomList g n q = ((r:rest),g'')
   where
-    (r,g')     = randomR (0,q) g
+    (r,g')     = randomR (0,q-1) g
     (rest,g'') = randomList g' (n-1) q
+
+prop_randomList :: Int -> BigInt1000 -> BigInt1000 -> Property
+prop_randomList g n q = n > 0 && q > 2 ==> 
+  length rl == fromIntegral n && 
+  null (filter (<0) rl) && 
+  null (filter (>=q) rl)
+  where
+    (rl,_) = randomList (mkStdGen g) n q
 
 -- share g s n t q computes the n secret shares of s, where
 -- the threshold is t, modulo q.
