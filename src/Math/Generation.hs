@@ -2,8 +2,8 @@
 module Math.Generation
 ( genPrime
 , genDifferentPrime
-, findNextCoprime
 , findNextPrime
+, findNextCoprime
 )
 where
 
@@ -36,9 +36,10 @@ genDifferentPrime g b p
   where
     (p',g') = genPrime g b
 
+-- Finds the next prime, starting from the argument
+findNextPrime :: (Random a, Integral a) => a -> a
+findNextPrime = findNext prime
+
 -- Finds the next coprime to n, starting from s
 findNextCoprime :: Integral a => a -> a -> a
 findNextCoprime n s = findNext (coprime n) s
-
-findNextPrime :: (Random a, Integral a) => a -> a
-findNextPrime = findNext prime
