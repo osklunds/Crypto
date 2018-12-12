@@ -13,6 +13,11 @@ import Math.GCD
 import Math.BigInt
 import Math.Generation
 
+instance Arbitrary StdGen where
+  arbitrary = do
+    seed <- arbitrary
+    return $ mkStdGen seed
+
 -- poly [c0..cm] x q computes the value of the polynomial
 -- function with coefficients c0 to cm, at x, modulo q.
 poly :: Integral a => [a] -> a -> a -> a
@@ -71,8 +76,40 @@ beta i (j:js) q
   | i == j    = beta i js q
   | otherwise = j * ((j-i) `invMod` q) * beta i js q `mod` q
 
--- TODO: test beta by testing with a polynomial, and if beta
--- used, shoudl give correct val.
+-- Generates a list of n unique random integers modulo q.
+-- q should be much larger than n.
+randomListU :: (RandomGen g, Random a, Integral a) => 
+  g -> a -> a -> ([a], g)
+randomListU g 0 _ = ([],g)
+randomListU g n q = ((r:rest),g'')
+  where
+    (rest,g') = randomListU g (n-1) q
+    (r,g'') = genNotIn g'
+
+    --genNotIn :: g -> (a,g)
+    genNotIn g1
+      | r `elem` rest = genNotIn g2
+      | otherwise     = (r,g2)
+      where
+        (r,g2) = randomR (0,q-1) g1
+
+
+
+prop_beta :: StdGen -> BigInt1000 -> BigInt1000 -> Property
+prop_beta g n' ne' = n >= 1 ==> s == s'
+  where
+    n          = n' `mod` 10
+    ne         = ne' `mod` 20
+    q          = findNextPrime 10000
+    -- Coefficients to a polynom
+    (cs@(s:_),g2) = randomList g n q
+    -- Random x values, at least n of them
+    (xVals,_)     = randomListU g2 (n+ne) q
+    yVals      = map (\i -> poly cs i q) xVals
+    -- Betas corresponding to the x values
+    betas      = map (\i -> beta i xVals q) xVals
+    -- Sum using beta values
+    s'         = (sum $ zipWith (*) betas yVals) `mod` q
 
 oneTest :: (RandomGen g, Random a, Integral a) => g -> a -> a -> a -> (Bool,g)
 oneTest g s n t = (recover [1..n] sis 1009 == s, g')
