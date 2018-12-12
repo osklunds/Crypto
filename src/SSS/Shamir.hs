@@ -53,9 +53,10 @@ prop_randomList g n q = n > 0 && q > 2 ==>
 share :: (RandomGen g, Random a, Integral a) => 
   g -> a -> a -> a -> a -> ([a], g)
 share g s n t q
-  | not (t > 0 && n >= t && q > 2) = error "Invalid arguments"
-  | otherwise                      = (map p [1..n], g')
+  | not (t >= 1 && n > t && q >= 2) = error "Invalid arguments"
+  | otherwise                       = (map p [1..n], g')
   where 
+    s' = s `mod` q
     -- cs are the list of coefficients
     (cs,g') = randomList g t q
     p i     = poly (s:cs) i q
@@ -93,8 +94,6 @@ randomListU g n q = ((r:rest),g'')
       where
         (r,g2) = randomR (0,q-1) g1
 
-
-
 prop_beta :: StdGen -> BigInt1000 -> BigInt1000 -> Property
 prop_beta g n' ne' = n >= 1 ==> s == s'
   where
@@ -111,19 +110,26 @@ prop_beta g n' ne' = n >= 1 ==> s == s'
     -- Sum using beta values
     s'         = (sum $ zipWith (*) betas yVals) `mod` q
 
-oneTest :: (RandomGen g, Random a, Integral a) => g -> a -> a -> a -> (Bool,g)
-oneTest g s n t = (recover [1..n] sis 1009 == s, g')
+-- oneTest g s n t q: share the secret s to n parties with
+-- threshold t. modulo q. Tests if can recover the secret.
+oneTest :: (RandomGen g, Random a, Integral a) => g -> a -> a -> a -> a -> Bool
+oneTest g s n t q = recover [1..n] sis q == (s `mod` q)
   where
-    (sis,g') = share g s n t 1009
+    (sis,_) = share g s n t q
 
-prop_shareRecover :: Int -> BigInt1000 -> BigInt1000 -> BigInt1000 -> BigInt1000 -> Property
-prop_shareRecover g' s' n' t' q' = t > 0 && n > t ==> recover pis sis q == s
+prop_shareRecover :: StdGen -> 
+                     BigInt100000 -> 
+                     BigInt100000 -> 
+                     BigInt100000 -> 
+                     BigInt100000 -> 
+                     Property
+prop_shareRecover g s' n' t' q' = n > 0 && t >= 1 && n > t ==>
+  oneTest g s n t q
   where
-    g = mkStdGen g'
     q = findNextPrime q'
     s = s' `mod` q
-    n = (n' `mod` q) `mod` 10
-    t = (t' `mod` q) `mod` 3
+    n = (n' `mod` q) `mod` 30
+    t = (t' `mod` n)
 
     (sis, g2) = share g s n t q
     (pis, _)  = randomList g2 (t+1) q
