@@ -1,5 +1,5 @@
 
-module SSS.Shamir
+module Shamir
 ( share
 , recover
 )

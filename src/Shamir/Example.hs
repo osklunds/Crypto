@@ -1,12 +1,12 @@
 
-module SSS.Shamir.Example
+module Shamir.Example
 (
 )
 where
 
 import System.Random
 
-import SSS.Shamir
+import Shamir
 
 -- Alice has a secret she wants to share.
 aliceSecret :: Int

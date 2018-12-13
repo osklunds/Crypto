@@ -18,3 +18,5 @@ Change directory to `src/` and type `ghci`. Now load the module you want to run.
     - `Math.Generation` Generation of primes and coprimes
 - `RSA` RSA key generation and encryption/decryption/signing/verification
   - `RSA.Example` Example usage of the RSA library
+- `Shamir` Shamir Threshold Secret Sharing Scheme.
+  - `Shamir.Example` Example usage of the secret sharing scheme.
