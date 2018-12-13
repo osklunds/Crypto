@@ -145,8 +145,9 @@ prop_shareRecover g s n t q = n' > 0 && t' >= 1 && n' > t' ==>
     s' = s `mod` q'
 
     (si_sAll, g2) = share g s' n' t' q'
-    -- Picks t'+1 parties that will recover the secret
-    (pi_s, _)  = randomListU g2 (t'+1) n'
+    -- Picks between t'+1 and n' parties that collaborate
+    (numP, g3) = randomR (t'+1,n') g2
+    (pi_s, _)  = randomListU g3 numP n'
     pi_s'      = map (+1) pi_s
     si_s       = map (\pi -> si_sAll !! (fromIntegral pi - 1)) pi_s'
 
