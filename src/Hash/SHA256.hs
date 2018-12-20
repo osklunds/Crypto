@@ -102,7 +102,7 @@ comp :: CompVars ->
 comp = comp' 0
 
 
-
+-- List of the message schedule array
 ws :: [Word32] -> [Word32]
 ws cnk = list
   where
@@ -122,8 +122,47 @@ ws cnk = list
              (w2  `rotateR` 19) `xor`
              (w2  `shiftR`  10)
 
-w :: [Word32] -> Word32 -> Word32
-w cnk i = ws cnk !! (fromIntegral i)
+-- Message schedule array as a function
+wc :: [Word32] -> Word32 -> Word32
+wc cnk i = ws cnk !! (fromIntegral i)
 
 
-      
+-- Merkle-Damgård. Given a compression function
+-- taking a tag and a message, this gives
+-- a function taking arbitrarily long list
+-- of messages, using the compression function
+-- and making it into a tag
+-- Need to supply initial tag/iv.
+merkleDamgard :: (t -> m -> t) -> t -> ([m] -> t)
+merkleDamgard _ t []     = t
+merkleDamgard h t (m:ms) = merkleDamgard h (h t m) ms
+
+
+-- The type of the tag used in the MD function
+newtype MDTag = MDTag [Word32] -- length = 8
+              deriving Show
+
+-- The type of the message used in the MD function
+newtype MDMes = MDMes [Word32] -- length = 16
+              deriving Show
+
+-- Initial hash values
+iv :: Word32 -> Word32
+iv i = ceiling . 
+       (subtract 1) . 
+       (*2^32) . 
+       (**(1.0/2.0)) .
+       fromIntegral $ (primesN :: [Word32]) !! (fromIntegral i)
+
+mdIV :: MDTag
+mdIV = MDTag $ map k [0..7]
+
+mdComp :: MDTag -> MDMes -> MDTag
+mdComp (MDTag [a,b,c,d,e,f,g,h]) (MDMes ms) =
+  MDTag [a',b',c',d',e',f',g',h']
+  where
+    cv = CompVars a b c d e f g h
+    (CompVars a' b' c' d' e' f' g' h') = comp cv k (wc ms)
+
+inner :: [MDMes] -> MDTag
+inner = merkleDamgard mdComp mdIV
