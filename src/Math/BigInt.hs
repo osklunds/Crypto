@@ -10,6 +10,7 @@ where
 
 import Test.QuickCheck
 import System.Random
+import Data.Bits
 
 -- Used to indicate size of arbitrary values
 data L1000
@@ -80,6 +81,13 @@ instance Random (BigInt a) where
                                    in  (BigInt r, g')
   random g                       = let (r, g') = random g
                                    in  (BigInt r, g')
+
+applyInside op (BigInt a) = BigInt (op a)
+
+instance Bits (BigInt a) where
+  (BigInt a) `shiftL` i = BigInt (a `shiftL` i)
+  (BigInt a) .|. (BigInt b) = BigInt (a .|. b)
+  bit i = BigInt (bit i)
 
 
 
