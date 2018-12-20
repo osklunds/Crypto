@@ -12,6 +12,7 @@ import Data.Char
 
 import Math.Prime
 
+
 -- Helper function to display as a bit string
 b2 :: (Show a, Integral a) => a -> String
 b2 i = showIntAtBase 2 intToDigit i ""
@@ -61,13 +62,14 @@ compIter (CompVars a b c d e f g h) ki wi =
     b' = a
     a' = t1+t2
 
+
 -- Round constants for compression function
 k :: Word32 -> Word32
 k i = ceiling . 
       (subtract 1) . 
       (*2^32) . 
       (**(1.0/3.0)) .
-      fromIntegral $ (primes :: [Word32]) !! (fromIntegral i)
+      fromIntegral $ (primesN :: [Word32]) !! (fromIntegral i)
 
 -- String generated from the calculation
 kGeneratedString :: String
@@ -82,3 +84,20 @@ kTestString = "0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f
 
 prop_roundConstants :: Bool
 prop_roundConstants = kGeneratedString == kTestString
+
+
+comp' :: Word32 -> 
+         CompVars -> 
+         (Word32 -> Word32) ->
+         (Word32 -> Word32) ->
+         CompVars
+comp' 64 cv _ _ = cv
+comp' i  cv k w = comp' (i+1) (compIter cv (k i) (w i)) k w
+
+-- The compression function
+comp :: CompVars -> 
+        (Word32 -> Word32) ->
+        (Word32 -> Word32) ->
+        CompVars
+comp = comp' 0
+      

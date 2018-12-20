@@ -6,6 +6,7 @@ module Math.Prime
 , prime1000
 , prime10000
 , primes
+, primesN
 )
 where
 
@@ -92,3 +93,8 @@ prop_prime n = prime n == primeNaive n
 -- List of all primes
 primes :: (Random a, Integral a) => [a]
 primes = filter prime [0..]
+
+-- List of all primes. Faster for small numbers, but
+-- much slower for larger ones.
+primesN :: Integral a => [a]
+primesN = filter primeNaive [0..]
