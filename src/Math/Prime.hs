@@ -5,6 +5,7 @@ module Math.Prime
 , prime100
 , prime1000
 , prime10000
+, primes
 )
 where
 
@@ -87,3 +88,7 @@ prime      = prime100
 
 prop_prime :: BigInt100000 -> Bool
 prop_prime n = prime n == primeNaive n
+
+-- List of all primes
+primes :: (Random a, Integral a) => [a]
+primes = filter prime [0..]
