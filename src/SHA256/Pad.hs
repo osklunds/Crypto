@@ -15,23 +15,18 @@ import SHA256.Types
 
 -- Returns the index, starting from 0, of the most
 -- significant bit. Only works for non-zero bytes.
-msb ::Integral a => Word32 -> a
-msb b = last [fromIntegral i | i <- [0..31], testBit b i]
+msb ::Integral a => Word8 -> a
+msb b = last [fromIntegral i | i <- [0..7], testBit b i]
 
--- Prepends a 1 bit
+-- Appends a 1 bit
 addOne :: BitString -> BitString
-addOne []     = [1]
-addOne bss@(b:bs) 
-  | msb' == 31 = 1:bss
-  | otherwise  = (setBit b (msb'+1)):bs
-  where
-    msb' = msb b
+addOne = (++ [128])
 
 -- Returns the length in bits of the bitstring.
 -- There must be no zero-bytes leading.
 bitLength :: BitString -> Word64
 bitLength []     = 0
-bitLength (b:bs) = msb b + 1 + 32 * length bs
+bitLength (b:bs) = msb b + 1 + 8 * length bs
 
 -- Returns the length in bits, of the length the bitstring
 -- should have after 0:s have been prepended
@@ -45,20 +40,23 @@ targetBitLength len
     r = len `mod` 512
     q = len `div` 512
 
--- Prepends 0 bits until the length+64 is a multiple of 512
-addZeros :: BitString -> BitString
-addZeros bs = reverse . take tarLen $ reverse bs ++ repeat 0
+-- Appends 0 bits until the length+64 is a multiple of 512
+addZeros :: Word64 -> BitString -> BitString
+addZeros len bs = take tarLen $ bs ++ repeat 0
   where
-    curLen = bitLength bs
     -- Length in blocks
-    tarLen = targetBitLength curLen `div` 32
+    tarLen = targetBitLength len `div` 8
 
--- Represents a 64-bit word as a list of 32-bit words
+-- Represents a 64-bit word as a list of 8-bit words
 w64ToW8List :: Word64 -> BitString
-w64ToW8List w64 = take 32 [fromIntegral (w64 `shiftR` i) 
-                         | i <- [32,0]]
+w64ToW8List w64 = take 8 [fromIntegral (w64 `shiftR` i) 
+                         | i <- [56,48..]]
 
 pad :: BitString -> BitString
-pad bs = w64ToW8List origLen ++ (addZeros . addOne) bs
+pad bs = ((addZeros origLen). addOne) bs ++ w64ToW8List toUse
   where
     origLen = bitLength bs
+    byteLen = origLen `div` 8
+    toUse   = if origLen == byteLen * 8
+              then origLen
+              else (byteLen+1) * 8
