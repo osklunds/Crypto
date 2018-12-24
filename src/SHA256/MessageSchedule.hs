@@ -7,8 +7,11 @@ where
 import Data.Word
 import Data.Bits
 
--- List of the message schedule array
-ws :: [Word32] -> [Word32]
+import SHA256.Types
+
+-- List of the message schedule array.
+-- A list of 64 32-bit words
+ws :: Chunk -> RoundWords
 ws cnk = list
   where
     list = cnk ++ map w [16..63]
@@ -27,6 +30,7 @@ ws cnk = list
              (w2  `rotateR` 19) `xor`
              (w2  `shiftR`  10)
 
--- Message schedule array as a function
-wc :: [Word32] -> Word32 -> Word32
+-- Message schedule array as a function.
+-- Takes an index in [0..63]
+wc :: Integral a => Chunk -> a -> Word32
 wc cnk i = ws cnk !! (fromIntegral i)
