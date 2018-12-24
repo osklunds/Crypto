@@ -10,8 +10,9 @@ import Math.Prime
 import Data.Word
 import Numeric
 
--- Round constants for compression function
-k :: Word32 -> Word32
+-- Round constants for compression function. Takes an
+-- index in [0..63]
+k :: Integral a => a -> Word32
 k i = ceiling . 
       (subtract 1) . 
       (*2^32) . 
@@ -33,8 +34,8 @@ prop_roundConstants :: Bool
 prop_roundConstants = kGeneratedString == kTestString
 
 
--- Initial hash values
-iv :: Word32 -> Word32
+-- Initial hash values. Takes an index in [0..7]
+iv :: Integral a => a -> Word32
 iv i = ceiling . 
        (subtract 1) . 
        (*2^32) . 
