@@ -55,8 +55,8 @@ comp' 64 cv _ _ = cv
 comp' i  cv k w = comp' (i+1) (compIter cv (k i) (w i)) k w
 
 -- The compression function
-comp :: Integral a => Comp -> 
+comp :: Integral a => Digest -> 
         (a -> Word32) ->
         (a -> Word32) ->
-        Comp
+        Digest
 comp = comp' 0
