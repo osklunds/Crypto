@@ -1,7 +1,6 @@
 
 module SHA256.Pad
-( Padded(..)
-, pad
+( pad
 )
 where
 
@@ -11,10 +10,6 @@ import Data.Bits
 import Numeric
 
 import Tools
-
-
-newtype Padded = Padded [Word8]
-               deriving (Show)
 
 -- Returns the index, starting from 0, of the most
 -- significant bit. Only works for non-zero bytes.
@@ -61,7 +56,7 @@ w64ToW8List :: Word64 -> [Word8]
 w64ToW8List w64 = take 8 [fromIntegral (w64 `shiftR` i) 
                          | i <- [56,48..]]
 
-pad :: [Word8] -> Padded
-pad bs = Padded (w64ToW8List origLen ++ (addZeros . addOne) bs)
+pad :: [Word8] -> [Word8]
+pad bs = w64ToW8List origLen ++ (addZeros . addOne) bs
   where
     origLen = bitLength bs
