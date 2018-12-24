@@ -1,8 +1,8 @@
 
 module SHA256.Compression
-( Comp(..)
+{- ( Comp(..)
 , comp
-)
+) -}
 where
 
 import Data.Word

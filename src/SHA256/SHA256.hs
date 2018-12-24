@@ -5,6 +5,7 @@ module SHA256.SHA256
 where
 
 import Data.Word
+import Data.Bits
 import Numeric
 
 import SHA256.Pad
@@ -23,15 +24,25 @@ mdIV :: Digest
 mdIV = map iv [0..7]
 
 mdComp :: Digest -> Chunk -> Digest
-mdComp digest ms = comp digest k (wc ms)
+mdComp digest ms = zipWith (+) digest c
+  where
+    c = comp digest k (wc ms)
 
 inner :: [Chunk] -> Digest
 inner = merkleDamgard mdComp mdIV
 
+w8ToW32 :: BitString -> Word32
+w8ToW32 = w8ToW32' 24
+
+w8ToW32' :: Int -> BitString -> Word32
+w8ToW32' _ []     = 0
+w8ToW32' n (b:bs) = (fromIntegral b) `shiftL` n +
+                    w8ToW32' (n-8) bs
+
 outer :: BitString -> Digest
 outer ms = hashed
   where
-    padded = pad ms
+    padded = map w8ToW32 (group 4 (pad ms))
     chunks = group 16 padded
     hashed = inner chunks
 
