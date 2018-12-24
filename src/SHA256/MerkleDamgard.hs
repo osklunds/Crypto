@@ -12,4 +12,4 @@ where
 -- Need to supply initial tag/iv.
 merkleDamgard :: (t -> m -> t) -> t -> ([m] -> t)
 merkleDamgard _ t []     = t
-merkleDamgard h t (m:ms) = merkleDamgard h (h t m) ms
+merkleDamgard c t (m:ms) = merkleDamgard c (c t m) ms
