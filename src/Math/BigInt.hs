@@ -89,5 +89,16 @@ instance Bits (BigInt a) where
   (BigInt a) .|. (BigInt b) = BigInt (a .|. b)
   bit i = BigInt (bit i)
 
+  (.&.) = undefined
+  xor = undefined
+  complement = undefined
+  shift = undefined
+  rotate = undefined
+  bitSize = undefined
+  bitSizeMaybe = undefined
+  isSigned = undefined
+  testBit = undefined
+  popCount = undefined
+
 
 

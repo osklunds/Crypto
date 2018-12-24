@@ -1,6 +1,7 @@
 
 module SHA256.Pad
-(
+( Padded(..)
+, pad
 )
 where
 
@@ -12,8 +13,8 @@ import Numeric
 import Tools
 
 
-data Padded = Padded [Word8]
-            deriving (Show)
+newtype Padded = Padded [Word8]
+               deriving (Show)
 
 -- Returns the index, starting from 0, of the most
 -- significant bit. Only works for non-zero bytes.
