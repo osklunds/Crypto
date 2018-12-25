@@ -34,11 +34,11 @@ inner = merkleDamgard mdComp mdIV
 outer :: BitString -> Digest
 outer ms = hashed
   where
-    padded = map w8ToW32 $ group 4 $ pad ms
+    padded = map w8sToW32 $ group 4 $ pad ms
     -- Split padded messages into 512-bit chunks of 32-bit words
     chunks = group 16 padded
     hashed = inner chunks
 
 -- The hash of an ascii string, as a string of hex numbers
 sha256 :: String -> String
-sha256 = w8ToHex . outer . asciiToW8
+sha256 = w32sToHex . outer . asciiToW8s
