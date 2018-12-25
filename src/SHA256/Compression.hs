@@ -1,8 +1,7 @@
 
 module SHA256.Compression
-{- ( Comp(..)
-, comp
-) -}
+( comp
+)
 where
 
 import Data.Word
@@ -29,7 +28,9 @@ maj :: Word32 -> Word32 -> Word32 -> Word32
 maj a b c = (a .&. b) `xor` (a .&. c) `xor` (b .&. c)
 
 
--- One iteration of compression function
+-- One iteration of compression function.
+-- First is current working variables, then the k and w
+-- for the round, outputs the new working variables.
 compIter :: Comp -> Word32 -> Word32 -> Comp
 compIter [a, b, c, d, e, f, g, h] ki wi =
   [a', b', c', d', e', f', g', h']
@@ -54,9 +55,13 @@ comp' :: Integral a => a ->
 comp' 64 cv _ _ = cv
 comp' i  cv k w = comp' (i+1) (compIter cv (k i) (w i)) k w
 
--- The compression function
+-- The compression function. First the current digest, then
+-- a function for k, then function for w, outputs the 
+-- new digest
 comp :: Integral a => Digest -> 
-        (a -> Word32) ->
-        (a -> Word32) ->
-        Digest
-comp = comp' 0
+                      (a -> Word32) ->
+                      (a -> Word32) ->
+                      Digest
+comp d k w = zipWith (+) d d'
+  where
+    d' = comp' 0 d k w

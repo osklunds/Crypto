@@ -24,7 +24,7 @@ mdIV :: Digest
 mdIV = map iv [0..7]
 
 mdComp :: Digest -> Chunk -> Digest
-mdComp digest ms = zipWith (+) digest c
+mdComp digest ms = c
   where
     c = comp digest k (wc ms)
 
