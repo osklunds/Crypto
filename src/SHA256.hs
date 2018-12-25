@@ -1,6 +1,6 @@
 
-module SHA256.SHA256
-(
+module SHA256
+( sha256
 )
 where
 
@@ -13,6 +13,7 @@ import SHA256.Constants
 import SHA256.Compression
 import SHA256.MessageSchedule
 import SHA256.Types
+import SHA256.RepConv
 
 import Tools
 
@@ -28,14 +29,6 @@ mdComp digest ms = comp digest k (wc ms)
 inner :: [Chunk] -> Digest
 inner = merkleDamgard mdComp mdIV
 
--- Makes 4 8-bit words into one 32-bit word
-w8ToW32 :: [Word8] -> Word32
-w8ToW32 = w8ToW32' 24
-
-w8ToW32' :: Int -> BitString -> Word32
-w8ToW32' _ []     = 0
-w8ToW32' n (b:bs) = (fromIntegral b) `shiftL` n +
-                    w8ToW32' (n-8) bs
 
 -- Outer hashing using padding, and then Merkle-Damgård
 outer :: BitString -> Digest
@@ -45,3 +38,7 @@ outer ms = hashed
     -- Split padded messages into 512-bit chunks of 32-bit words
     chunks = group 16 padded
     hashed = inner chunks
+
+-- The hash of an ascii string, as a string of hex numbers
+sha256 :: String -> String
+sha256 = w8ToHex . outer . asciiToW8

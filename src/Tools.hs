@@ -3,10 +3,12 @@ module Tools
 ( length
 , take
 , group
+, toHex
 )
 where
 
 import Prelude hiding (length, take, drop)
+import Numeric
 
 length :: Integral a => [b] -> a
 length []     = 0
@@ -25,3 +27,6 @@ drop n (a:as) = drop (n-1) as
 group :: Integral a => a -> [b] -> [[b]]
 group _ [] = []
 group n l  = (take n l) : (group n (drop n l))
+
+toHex :: (Show a, Integral a) => a -> String
+toHex n = showHex n ""
