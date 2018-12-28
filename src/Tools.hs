@@ -4,10 +4,11 @@ module Tools
 , take
 , group
 , toHex
+, (!!)
 )
 where
 
-import Prelude hiding (length, take, drop)
+import Prelude hiding (length, take, drop, (!!))
 import Numeric
 
 length :: Integral a => [b] -> a
@@ -30,3 +31,8 @@ group n l  = (take n l) : (group n (drop n l))
 
 toHex :: (Show a, Integral a) => a -> String
 toHex n = showHex n ""
+
+(!!) :: Integral a => [b] -> a -> b
+[]     !! _ = error "Out of range"
+(x:_)  !! 0 = x
+(_:xs) !! n = xs !! (n-1)

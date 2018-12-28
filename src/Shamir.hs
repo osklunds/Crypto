@@ -5,12 +5,14 @@ module Shamir
 )
 where
 
+import Prelude hiding ((!!))
 import System.Random
 import Test.QuickCheck
 
 import Math.GCD
 import Math.BigInt
 import Math.Generation
+import Tools ((!!))
 
 
 -- poly [c0..cm] q x computes the value of the polynomial
@@ -131,15 +133,15 @@ recover pi_s si_s q = sum prods `mod` q
     prods = zipWith (*) bi_s si_s
 
 prop_shareRecover :: StdGen -> 
-                     BigInt10000000 -> 
-                     BigInt10000000 -> 
-                     BigInt10000000 -> 
-                     BigInt10000000 -> 
+                     BigInt100000 -> 
+                     BigInt100000 -> 
+                     BigInt100000 -> 
+                     BigInt100000 -> 
                      Property
 prop_shareRecover g s n t q = n' > 0 && t' >= 1 && n' > t' ==>
-  s_rec == s_rec
+  s_rec == s'
   where
-    n' = n `mod` 60 + 2
+    n' = n `mod` 2 + 2
     t' = (t `mod` n') + 1
     q' = findNextPrime (max q n'+1)
     s' = s `mod` q'
@@ -149,6 +151,6 @@ prop_shareRecover g s n t q = n' > 0 && t' >= 1 && n' > t' ==>
     (numP, g3) = randomR (t'+1,n') g2
     (pi_s, _)  = randomListU g3 numP n'
     pi_s'      = map (+1) pi_s
-    si_s       = map (\pi -> si_sAll !! (fromIntegral pi - 1)) pi_s'
+    si_s       = [si_sAll !! pi | pi <- pi_s]
 
     s_rec = recover pi_s' si_s q'
