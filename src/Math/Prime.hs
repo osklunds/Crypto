@@ -1,28 +1,41 @@
 
+-- | Module for primality testing and list of primes.
+-- Both probabilistic (fast but cumbersome) and
+-- deterministic testing is provided.
+
 module Math.Prime
-( millerRabin
-, prime
-, prime100
-, prime1000
-, prime10000
+( 
+  -- * Probabilistic tests.
+  prime
+, primeK
 , primes
-, primesN
+  -- * Deterministic tests.
+, primeDet
+, primesDet
 )
 where
 
 import System.Random
+import Control.Monad.State
 import Test.QuickCheck
 
 import Math.Common
 import Math.PowerModulo
 import Math.BigInt
+import Math.Random
 
-primeNaive :: Integral a => a -> Bool
-primeNaive n
+-- | Deterministic primality test.
+primeDet :: Integral a => a -> Bool
+primeDet n
   | n < 2  = False
-  | n >= 2 = null [d | d <- [2..n-1], d `divides` n]
+  | n >= 2 = null . filter (`divides` n) $ [2..n-1]
 
--- Finds d and s for n, used in MR
+-- | List of all primes deterministically determined.
+primesDet :: Integral a => [a]
+primesDet = filter primeDet [0..]
+
+
+-- | findDS n, for odd n, gives odd d and s >= 0 s.t. n=2^s*d.
 findDS :: Integral a => a -> (a, a)
 findDS n = findDS' (n-1) 0
   where
@@ -30,9 +43,10 @@ findDS n = findDS' (n-1) 0
       | even q = findDS' (q `div` 2) (s+1)
       | odd  q = (q,s)
 
--- Does one MR round for an a
+-- | millerRabinOnce n d s a does one MR round test on
+-- n using a.
 millerRabinOnce :: Integral a => a -> a -> a -> a -> Bool
-millerRabinOnce n a d s
+millerRabinOnce n d s a
   | even n           = False
   | otherwise        = not (test1 && test2)
   where
@@ -42,59 +56,58 @@ millerRabinOnce n a d s
     test2 = and $ map (\t -> powerModulo a ((2^t)*d) n /= n-1) 
                       [0..s-1]
 
--- Does MR test for all a
+-- | Does MR test of n with all test values a for n.
 millerRabinAll :: Integral a => a -> Bool
 millerRabinAll n
-  | n <= 3    = error "Too small for MR"
-  | otherwise = and $ map (\a -> millerRabinOnce n a d s) [1..n-1]
+  | n <= 3    = error "Too small for Miller-Rabin"
+  | otherwise = and $ map (millerRabinOnce n d s) [1..n-1]
   where
     (d,s) = findDS $ n
 
--- Tests numbers up to k that MR test is correct
-testMillerRabinAll :: Integral a => a -> Bool
-testMillerRabinAll k = and $ map (\n -> millerRabinAll n == 
-                                 primeNaive n) [4..k]
+-- | Tests numbers up to k that MR test is correct.
+prop_millerRabinAll :: Int -> Bool
+prop_millerRabinAll k = and $ map (\n -> millerRabinAll n == 
+                                   primeDet n) [4..k]
 
--- General MR test
-millerRabin :: (RandomGen g, Random a, Integral a) => a -> a -> 
-                                                 g -> (Bool, g)
-millerRabin n k gen = millerRabin' n k gen
+-- | millerRabin k n does k MR rounds testing n for primality.
+millerRabin :: (RandomGen g, Random a, Integral a) =>
+  a -> a -> State g Bool
+millerRabin k n = millerRabin' k
   where
-    (d,s)    = findDS n
+    (d, s)          = findDS n
+    millerRabin' 0 = return True
+    millerRabin' k = do
+      rest <- millerRabin' $ k - 1
+      test <- randomR_st (1, n - 1)
+      let this = millerRabinOnce n d s test
+      return $ this && rest
 
-    millerRabin' _ 0 gen = (True, gen)
-    millerRabin' n k gen
-      | cand      = millerRabin' n (k-1) gen'
-      | otherwise = (False, gen')
-      where
-        (a,gen')  = randomR (1, n-1) gen
-        cand      = millerRabinOnce n a d s
 
--- Does k MR rounds
-primek :: (Integral a, Random a) => a -> a -> Bool
-primek k n
-  | n < 2            = False
-  | n == 2 || n == 3 = True
-  | otherwise        = fst $ millerRabin n k' (mkStdGen 1337)
+-- | primeK k n. Probabilistic primality test of n
+-- using k Miller-Rabin rounds.
+primeK :: (Integral a, Random a, RandomGen g) => 
+  a -> a -> State g Bool
+primeK k n
+  | n < 2            = return False
+  | n == 2 || n == 3 = return True
+  | otherwise        = millerRabin (min n k) n
+
+-- | Probabilistic primality test with 64 Miller-Rabin rounds.
+prime :: (Integral a, Random a, RandomGen g) => 
+  a -> State g Bool
+prime = primeK 64
+
+
+-- | List of all primes probabilistically determined.
+primes :: (Integral a, Random a, RandomGen g) => State g [a]
+primes = do
+  let begin = filter primeDet [0..cutoff]
+  end <- filterM prime [cutoff..]
+  return $ begin ++ end
   where
-    k' = min n k
+    cutoff = 10^4
 
--- Short forms
-prime100, prime1000, prime10000, prime :: (Integral a, Random a)
-                                       => a -> Bool
-prime100   = primek 100
-prime1000  = primek 1000
-prime10000 = primek 10000
-prime      = prime100
 
 prop_prime :: BigInt100000 -> Bool
-prop_prime n = prime n == primeNaive n
+prop_prime n = primeDet n == (eval $ prime n)
 
--- List of all primes
-primes :: (Random a, Integral a) => [a]
-primes = filter prime [0..]
-
--- List of all primes. Faster for small numbers, but
--- much slower for larger ones.
-primesN :: Integral a => [a]
-primesN = filter primeNaive [0..]
