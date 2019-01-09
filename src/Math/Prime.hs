@@ -24,6 +24,7 @@ import Math.PowerModulo
 import Math.BigInt
 import Math.Random
 
+
 -- | Deterministic primality test.
 primeDet :: Integral a => a -> Bool
 primeDet n
@@ -97,6 +98,9 @@ prime :: (Integral a, Random a, RandomGen g) =>
   a -> State g Bool
 prime = primeK 64
 
+prop_prime :: BigInt100000 -> Bool
+prop_prime n = primeDet n == (eval $ prime n)
+
 
 -- | List of all primes probabilistically determined.
 primes :: (Integral a, Random a, RandomGen g) => State g [a]
@@ -106,8 +110,3 @@ primes = do
   return $ begin ++ end
   where
     cutoff = 10^4
-
-
-prop_prime :: BigInt100000 -> Bool
-prop_prime n = primeDet n == (eval $ prime n)
-

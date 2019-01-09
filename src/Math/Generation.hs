@@ -1,45 +1,46 @@
 
 module Math.Generation
-( genPrime
+( nextCoprime
+, genPrime
 , genDifferentPrime
-, findNextPrime
-, findNextCoprime
+, nextPrime
 )
 where
 
 import System.Random
+import Control.Monad.State
 import Test.QuickCheck
 
 import Math.GCD
 import Math.Prime
+import Math.Random
 
--- Find next integer satisfying criteria c
--- Unless c can be satisfied, it will go on forever
-findNext :: Integral a => (a -> Bool) -> a -> a
-findNext c n
-  | c n       = n
-  | otherwise = findNext c $ n+1
 
--- Generates a prime with b bits
-genPrime :: (RandomGen g, Random a, Integral a) => g -> a -> (a,g)
-genPrime g b = (p,g')
-  where
-    (n,g') = randomR (2^(b-1),2^b-1) g
-    p      = findNext prime n
+-- | nextCoprime n s returns the next coprime to n starting 
+-- from s.
+nextCoprime :: Integral a => a -> a -> a
+nextCoprime n s = head $ filter (coprime n) [s..]
 
--- Same as genPrime, but a prime different to p suppliad
-genDifferentPrime :: (RandomGen g, Random a, Integral a) => g -> 
-                     a -> a -> (a,g)
-genDifferentPrime g b p
-  | p == p'   = genDifferentPrime g' b p
-  | otherwise = (p',g')
-  where
-    (p',g') = genPrime g b
 
--- Finds the next prime, starting from the argument
-findNextPrime :: (Random a, Integral a) => a -> a
-findNextPrime = findNext prime
+-- | Generates b bit prime.
+genPrime :: (RandomGen g, Random a, Integral a) => a -> State g a
+genPrime b = do
+  n  <- randomR_st (2^(b-1),2^b-1)
+  ps <- filterM prime [n..]
+  return $ head ps
 
--- Finds the next coprime to n, starting from s
-findNextCoprime :: Integral a => a -> a -> a
-findNextCoprime n s = findNext (coprime n) s
+-- | genDifferentPrime b p generates a b bit prime distinct 
+-- from p.
+genDifferentPrime :: (RandomGen g, Random a, Integral a) =>
+  a -> a -> State g a
+genDifferentPrime b p = do
+  p' <- genPrime b
+  if p == p'
+    then genDifferentPrime b p
+    else return p'
+
+
+-- | nextPrime s returns the next prime starting from s.
+nextPrime :: (RandomGen g, Random a, Integral a) =>
+  a -> State g a
+nextPrime s = filterM prime [s..] >>= return . head
