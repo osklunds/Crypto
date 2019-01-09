@@ -25,7 +25,7 @@ nextCoprime n s = head $ filter (coprime n) [s..]
 -- | Generates b bit prime.
 genPrime :: (RandomGen g, Random a, Integral a) => a -> State g a
 genPrime b = do
-  n  <- randomR_st (2^(b-1),2^b-1)
+  n  <- getRandomR (2^(b-1),2^b-1)
   ps <- filterM prime [n..]
   return $ head ps
 
