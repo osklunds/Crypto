@@ -5,7 +5,7 @@ Textbook implementations of cryptographic algorithms in Haskell, just for fun!
 
 ## How to run
 
-Change directory to `src/` and type `ghci`. Now load the module you want to run.
+Change directory to `src/` and type `ghci`. Now load the module you want to run. Some modules require the package `MonadRandom`, which you can install with `cabal install MonadRandom`.
 
 ## Modules
 

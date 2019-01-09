@@ -10,13 +10,16 @@ module Math.Prime
 where
 
 import System.Random
-import Control.Monad.State
+import Control.Monad
+import Control.Monad.Random.Class
+import Control.Monad.Random.Lazy
 import Test.QuickCheck
+import Prelude hiding (take)
 
 import Math.Common
 import Math.PowerModulo
 import Math.BigInt
-import Math.Random
+import Tools
 
 
 primeDet :: Integral a => a -> Bool
@@ -38,7 +41,7 @@ millerRabinOnce n a
   | even n           = False
   | otherwise        = not (test1 && test2)
   where
-    (d,s) = findDS n
+    (d, s) = findDS n
 
     test1 = powerModulo a d n /= 1
     test2 = and $ map (\t -> powerModulo a ((2^t)*d) n /= n-1) 
@@ -55,23 +58,24 @@ prop_millerRabinAll k = and $ map (\n -> millerRabinAll n ==
                                    primeDet n) [4..k]
 
 -- millerRabin k n does k MR rounds testing n for primality.
-millerRabin :: (RandomGen g, Random a, Integral a) =>
-  a -> a -> State g Bool
+millerRabin :: (Random a, Integral a, MonadRandom m) =>
+  a -> a -> m Bool
 millerRabin k n = do
-  as <- getRandomListR k (1, n - 1)
-  return . and $ map (millerRabinOnce n) as
+  as <- getRandomRs (1, n - 1)
+  return . and . take k $ map (millerRabinOnce n) as
 
 
-primeK :: (Integral a, Random a, RandomGen g) => 
-  a -> a -> State g Bool
+primeK :: (Integral a, Random a, MonadRandom m) => 
+  a -> a -> m Bool
 primeK k n
   | n < 2            = return False
   | n == 2 || n == 3 = return True
   | otherwise        = millerRabin (min n k) n
 
-prime :: (Integral a, Random a, RandomGen g) => 
-  a -> State g Bool
+prime :: (Integral a, Random a, MonadRandom m) => 
+  a -> m Bool
 prime = primeK 64
 
 prop_prime :: BigInt100000 -> Bool
-prop_prime n = primeDet n == (eval $ prime n)
+prop_prime n = let res = fst $ runRand (prime n) $ mkStdGen 123
+               in  res == primeDet n
