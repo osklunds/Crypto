@@ -4,8 +4,7 @@
 -- deterministic testing is provided.
 
 module Math.Prime
-( 
-  prime
+( prime
 )
 where
 
@@ -47,7 +46,7 @@ millerRabinOnce n a
     test2 = and $ map (\t -> powerModulo a ((2^t)*d) n /= n-1) 
                       [0..s-1]
 
--- Does MR test on n with all test values a for n.
+-- Does MR test on n with all test values, i.e. [1..n-1].
 millerRabinAll :: Integral a => a -> Bool
 millerRabinAll n
   | n <= 3    = error "Too small for Miller-Rabin"
