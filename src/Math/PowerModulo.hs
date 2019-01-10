@@ -5,36 +5,41 @@ module Math.PowerModulo
 where
 
 import Test.QuickCheck
+import Prelude hiding (length)
 
 import Math.BigInt
+import Tools
 
--- powerModulo b e m calculates b^e mod m efficiently
-powerModulo :: (Integral a) => a -> a -> a -> a
-powerModulo b e m
-  | e < 0 || m < 2 = error "Bad arguments"
-  | b < 0                   = powerModulo (b `mod` m) e m
-  | e == 0                  = 1
-  | b == 0 || b == 1        = b
-  | b == m                  = 0
-  | b > m                   = powerModulo (b `mod` m) e m
-  | b < m                   = (a' * b^d) `mod` m
-  where
-    (a,k,d) = maximumPower b e m
-    a' = powerModulo (a `mod` m) k m
 
--- maximumPower b e m gives (a,k,d) s.t.
--- 1. b^e = a^k * b^d
--- 2. a = b^x >= m, for minimal x
--- 3. d is minimal
-maximumPower :: (Integral a) => a -> a -> a -> (a, a, a)
-maximumPower b e m 
-  | null list = (1,1,e)
-  | otherwise = (a,e `div` x,e `mod` x)
+-- Positive integer to MSB bit string
+toBin :: Integral a => a -> [a]
+toBin = reverse . toBin'
+
+toBin' :: Integral a => a -> [a]
+toBin' 0 = []
+toBin' n = let (q, r) = n `quotRem` 2
+          in  r:(toBin' q)
+
+toDec :: Integral a => [a] -> a
+toDec = toDec' . reverse
+
+toDec' :: Integral a => [a] -> a
+toDec' [] = 0
+toDec' (b:bs) = b + 2 * toDec' bs
+
+prop_toBin :: BigInt10000000 -> Property
+prop_toBin n = n >= 0 ==> n == (toDec $ toBin n)
+
+
+-- powerModulo b e m calculates b^e `mod` m efficiently.
+powerModulo :: Integral a => a -> a-> a -> a
+powerModulo b e m = foldl f 1 bin
   where
-    -- The list of powers and exponents is increasing
-    -- so the smallest a is the first element
-    list = [(b^x,x) | x <- [1..e], b^x >= m]
-    (a,x) = head $ list
+    bin = toBin e
+    len = length bin
+
+    f z 0 = z^2 `mod` m
+    f z 1 = f z 0 * b `mod` m
 
 prop_powerModulo :: BigInt100000 -> BigInt100000 -> BigInt100000 -> Property
 prop_powerModulo b e m = e >= 0 && m >= 2 ==> correct
