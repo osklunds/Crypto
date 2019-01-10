@@ -1,4 +1,7 @@
 
+-- Types for integers with Arbitrary instances giving
+-- larger numbers than Int and Integer gives.
+
 {-# LANGUAGE FlexibleInstances #-}
 
 module Math.BigInt

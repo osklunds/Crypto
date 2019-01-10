@@ -1,4 +1,6 @@
 
+-- Shared small mathematical functions.
+
 module Math.Common
 ( divides
 )

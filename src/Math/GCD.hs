@@ -1,4 +1,6 @@
 
+-- gcd, eea and similar.
+
 module Math.GCD
 ( gcd
 , eea
@@ -20,6 +22,9 @@ gcd a b
   | b == 0         = a
   | b `divides` a  = b
   | otherwise      = gcd b (a `mod` b)
+
+coprime :: Integral a => a -> a -> Bool
+a `coprime` b = gcd a b == 1
 
 -- Given a and b, returns (d,s,t) s.t. gcd(a,b)=d=as+bt
 eea :: Integral a => a -> a -> (a, a, a)
@@ -57,9 +62,6 @@ a `invMod` m
   | otherwise = s `mod` m
   where
     (d,s,_) = eea a m
-
-coprime :: Integral a => a -> a -> Bool
-a `coprime` b = gcd a b == 1
 
 prop_invMod :: BigInt10000000 -> BigInt10000000 -> Property
 prop_invMod a m = a > 0 && m > 2 && a `coprime` m ==>
