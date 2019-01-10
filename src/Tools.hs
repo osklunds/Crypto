@@ -10,6 +10,8 @@ where
 
 import Prelude hiding (length, take, drop, (!!))
 import Numeric
+import System.Random
+import Test.QuickCheck
 
 length :: Integral a => [b] -> a
 length []     = 0
@@ -36,3 +38,8 @@ toHex n = showHex n ""
 []     !! _ = error "Out of range"
 (x:_)  !! 0 = x
 (_:xs) !! n = xs !! (n-1)
+
+instance Arbitrary StdGen where
+  arbitrary = do
+    seed <- arbitrary
+    return $ mkStdGen seed

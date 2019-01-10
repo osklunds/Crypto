@@ -25,15 +25,16 @@ nextCoprime n s = head $ filter (coprime n) [s..]
 -- nextPrime n returns the smallest prime >= n.
 nextPrime :: (Random a, Integral a, MonadRandom m) =>
   a -> m a
-nextPrime s = filterM prime [s..] >>= return . head
+nextPrime n = do
+  isPrime <- prime n
+  if isPrime
+    then return n
+    else nextPrime $ n+1
 
 
 -- Generates b bit prime.
 genPrime :: (Random a, Integral a, MonadRandom m) => a -> m a
-genPrime b = do
-  n  <- getRandomR (2^(b-1),2^b-1)
-  ps <- filterM prime [n..]
-  return $ head ps
+genPrime b = getRandomR (2^(b-1),2^b-1) >>= nextPrime
 
 -- genDifferentPrime b p generates a b bit prime distinct 
 -- from p.
