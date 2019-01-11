@@ -15,7 +15,7 @@ import Test.QuickCheck
 import System.Random
 import Data.Bits
 
--- Used to indicate size of arbitrary values
+-- Used to indicate size of arbitrary values.
 data L1000
 data L100000
 data L10000000

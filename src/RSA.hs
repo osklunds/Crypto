@@ -2,7 +2,7 @@
 -- Module with functions for textbook RSA.
 
 module RSA
-( genKey
+( getKey
 , PubKey
 , PriKey
 , canEncrypt
@@ -46,13 +46,13 @@ instance Show a => (Show (PriKey a)) where
                       " d=" ++
                       show d
 
-genKey :: (Random a, Integral a, MonadRandom m) => 
+getKey :: (Random a, Integral a, MonadRandom m) => 
   a -> m (PubKey a, PriKey a)
-genKey bits
+getKey bits
   | bits <= 4 = error "Too few bits"
   | otherwise = do
-    p <- genPrime bits
-    q <- genDifferentPrime bits p
+    p <- getPrime bits
+    q <- getDifferentPrime bits p
 
     let n     = p*q
         phiN  = (p-1)*(q-1)
@@ -102,7 +102,7 @@ prop_pubThenPri :: StdGen -> BigInt100000 -> BigInt100000 -> Property
 prop_pubThenPri g m b = canEncrypt pubKey m ==> m == m'
   where
     bits            = (5 + b `mod` 10)
-    (pubKey,priKey) = fst $ runRand (genKey bits) g
+    (pubKey,priKey) = fst $ runRand (getKey bits) g
     c               = encrypt pubKey m
     m'              = decrypt priKey c
 
@@ -110,5 +110,5 @@ prop_priThenPub :: StdGen -> BigInt100000 -> BigInt100000 -> Property
 prop_priThenPub g m b = canSign priKey m ==> verify pubKey m s
   where
     bits            = (5 + b `mod` 10)
-    (pubKey,priKey) = fst $ runRand (genKey bits) g
+    (pubKey,priKey) = fst $ runRand (getKey bits) g
     s               = sign priKey m

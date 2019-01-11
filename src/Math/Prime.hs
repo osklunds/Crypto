@@ -1,7 +1,5 @@
 
--- Module for primality testing and list of primes.
--- Both probabilistic (fast but cumbersome) and
--- deterministic testing is provided.
+-- Module for primality testing.
 
 module Math.Prime
 ( prime
@@ -56,25 +54,21 @@ prop_millerRabinAll :: Int -> Bool
 prop_millerRabinAll k = and $ map (\n -> millerRabinAll n == 
                                    primeDet n) [4..k]
 
--- millerRabin k n does k MR rounds testing n for primality.
+-- millerRabin n k does k MR rounds testing n for primality.
 millerRabin :: (Random a, Integral a, MonadRandom m) =>
   a -> a -> m Bool
-millerRabin k n = do
+millerRabin n k = do
   as <- getRandomRs (1, n - 1)
   return . and . take k $ map (millerRabinOnce n) as
 
-
-primeK :: (Integral a, Random a, MonadRandom m) => 
-  a -> a -> m Bool
-primeK k n
-  | n < 2            = return False
-  | n == 2 || n == 3 = return True
-  | otherwise        = millerRabin (min n k) n
-
-prime :: (Integral a, Random a, MonadRandom m) => 
-  a -> m Bool
-prime = primeK 64
+-- The final prime function. To provide a simpler interface,
+-- the randomness is hard-coded.
+prime :: (Integral a, Random a) => a -> Bool
+prime n
+  | n <  10000 = primeDet n
+  | n >= 10000 = fst $ runRand (millerRabin n 64) $ mkStdGen 123
+  -- A cutoff is used. Below, faster with naive. Above,
+  -- faster with Miller-Rabin.
 
 prop_prime :: BigInt100000 -> Bool
-prop_prime n = let res = fst $ runRand (prime n) $ mkStdGen 123
-               in  res == primeDet n
+prop_prime n = prime n == primeDet n

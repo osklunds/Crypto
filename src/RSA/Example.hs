@@ -16,8 +16,8 @@ import RSA
 
 type KeysType = (PubKey Integer, PriKey Integer)
 
-aliceKeys = fst (runRand (genKey 20) (mkStdGen 123)) :: KeysType
-bobKeys   = fst (runRand (genKey 20) (mkStdGen 456)) :: KeysType
+aliceKeys = fst (runRand (getKey 20) (mkStdGen 123)) :: KeysType
+bobKeys   = fst (runRand (getKey 20) (mkStdGen 456)) :: KeysType
 
 alicePrivate = snd $ aliceKeys
 alicePublic  = fst $ aliceKeys
