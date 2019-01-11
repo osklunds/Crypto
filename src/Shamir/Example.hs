@@ -5,19 +5,22 @@ module Shamir.Example
 where
 
 import System.Random
+import Control.Monad.Random.Class
+import Control.Monad.Random.Lazy
 
 import Shamir
 
 -- Alice has a secret she wants to share.
-aliceSecret :: Int
 aliceSecret = 7
 
 -- She works modulo 101
 modulo = 101
 
 -- See creates 4 shares out of it, and want the threshold
--- to be 2. That is, at least 3 will have to collaborate
-shares = fst $ share (mkStdGen 1337) aliceSecret 4 2 modulo
+-- to be 2. That is, at least 3 will have to collaborate.
+shares :: [Integer]
+shares = fst $ runRand (share aliceSecret 4 2 modulo) $
+         mkStdGen 1337
 
 -- She gives share 1 to Bob, share 2 to Charlie, share 3
 -- to Dave and share 4 to Eve
@@ -36,4 +39,4 @@ secret = recover [4,1,2] [eveShare, bobShare, charlieShare] modulo
 -- What if too few try?
 secretMaybe = recover [1,2] [bobShare, charlieShare] modulo
 
--- It's 25! Just some garbage.
+-- It's 81! Just some garbage.
