@@ -1,7 +1,7 @@
 
 # Crypto
 
-Textbook implementations of cryptographic algorithms in Haskell, just for fun!
+Textbook implementations of cryptographic algorithms in Haskell, just for fun! I have implemented textbook RSA, Shamir's Secret Sharing Scheme and SHA256.
 
 ## How to run
 
@@ -46,5 +46,5 @@ The minor modules are
 - `MessageSchedule` List for the message schedule array.
 - `Pad` Padding for the pre-processing.
 - `RepConv` Converting between different representations of words and lists of words.
-- `Test` Comparsion between this implementation and a library function.
 - `Types` Synonyms for types used by the different functions.
+- `Test` Comparsion between this implementation and a library function. This module requires the package `Crypto.Hash.SHA256` which can be installed with `cabal install cryptohash`.
