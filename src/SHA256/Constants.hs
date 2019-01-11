@@ -6,9 +6,14 @@ module SHA256.Constants
 where
 
 import Math.Prime
+import Prelude hiding ((!!))
 
 import Data.Word
 import Numeric
+import Tools
+
+primes :: [Word32]
+primes = filter prime [0..]
 
 -- Round constants for compression function. Takes an
 -- index in [0..63]
@@ -17,7 +22,7 @@ k i = ceiling .
       (subtract 1) . 
       (*2^32) . 
       (**(1.0/3.0)) .
-      fromIntegral $ (primesN :: [Word32]) !! (fromIntegral i)
+      fromIntegral $ primes !! i
 
 genString :: (Show a, Integral a) => (a -> a) -> a -> String
 genString f m = foldl (\str strs -> str++strs) "" strings
@@ -43,7 +48,7 @@ iv i = ceiling .
        (subtract 1) . 
        (*2^32) . 
        (**(1.0/2.0)) .
-       fromIntegral $ (primesN :: [Word32]) !! (fromIntegral i)
+       fromIntegral $ (primes :: [Word32]) !! i
 
 ivTestString :: String
 ivTestString = "0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19, "
