@@ -1,5 +1,5 @@
 
--- Modular exponentiation done efficiently.
+-- | Modular exponentiation done efficiently.
 
 module Math.PowerModulo
 ( powerModulo
@@ -12,8 +12,7 @@ import Prelude hiding (length)
 import Math.BigInt
 import Tools
 
-
--- Positive integer to MSB bit string
+-- Positive base-10 integer to MSB bit string.
 toBin :: Integral a => a -> [a]
 toBin = reverse . toBin'
 
@@ -22,6 +21,7 @@ toBin' 0 = []
 toBin' n = let (q, r) = n `quotRem` 2
           in  r:(toBin' q)
 
+-- MSB bit string to positive base-10 integer.
 toDec :: Integral a => [a] -> a
 toDec = toDec' . reverse
 
@@ -33,7 +33,7 @@ prop_toBin :: BigInt10000000 -> Property
 prop_toBin n = n >= 0 ==> n == (toDec $ toBin n)
 
 
--- powerModulo b e m calculates b^e `mod` m efficiently.
+-- | powerModulo b e m calculates b^e modulo m efficiently.
 powerModulo :: Integral a => a -> a-> a -> a
 powerModulo b e m = foldl f 1 bin
   where
