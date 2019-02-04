@@ -1,7 +1,18 @@
 
 # Crypto
 
-Textbook implementations of cryptographic algorithms in Haskell. I have implemented textbook RSA, Shamir's Secret Sharing Scheme and SHA256.
+Textbook implementations of cryptographic algorithms in Haskell. So far I have implemented:
+
+- Textbook RSA
+- Shamir Secret Sharing
+- SHA256
+
+In this project I strive to follow these design principles:
+
+- Elegance
+- DRY
+- KISS
+- Narrow interfaces
 
 ## How to run
 
