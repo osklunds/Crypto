@@ -11,7 +11,7 @@ import Test.QuickCheck
 import Control.Monad.Random.Class
 import Control.Monad.Random.Lazy
 
-import Math.GCD
+import Math.Divisibility
 import Math.BigInt
 import Math.Gen
 import Tools

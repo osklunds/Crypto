@@ -14,7 +14,7 @@ import Control.Monad.Random.Class
 import Control.Monad.Random.Lazy hiding (next)
 import Test.QuickCheck
 
-import Math.GCD
+import Math.Divisibility
 import Math.Prime
 
 

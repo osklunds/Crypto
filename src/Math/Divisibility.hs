@@ -1,8 +1,9 @@
 
--- gcd, eea and similar.
+-- | Divisibility and related, such as greatest common divisor.
 
-module Math.GCD
-( gcd
+module Math.Divisibility
+( divides
+, gcd
 , eea
 , coprime
 , invMod
@@ -11,9 +12,11 @@ where
 
 import Prelude hiding (gcd)
 import Test.QuickCheck
-
-import Math.Common
 import Math.BigInt
+
+-- | divides d n tests if d divides n.
+divides :: Integral a => a -> a -> Bool
+a `divides` b = b `mod` a == 0
 
 gcd :: Integral a => a -> a -> a
 gcd a b
@@ -26,7 +29,7 @@ gcd a b
 coprime :: Integral a => a -> a -> Bool
 a `coprime` b = gcd a b == 1
 
--- Given a and b, returns (d,s,t) s.t. gcd(a,b)=d=as+bt
+-- | eea a b returns (d,s,t) s.t. d=as+bt.
 eea :: Integral a => a -> a -> (a, a, a)
 eea a b
   -- Special cases
@@ -40,7 +43,7 @@ eea a b
   | a < 0 && b < 0   = let (d,s,t) = eea (-a) (-b)
                        in  (d,-s,-t)
 
-  -- Regular/recursive cases
+  -- Recursive cases
   | a == b = (a,1,0)
   | r == 0 = (b,0,1)
   | r /= 0 = (d,s,t)
@@ -55,7 +58,7 @@ prop_eea a b = gcd a b == d && a*s+b*t == d && d >= 0
   where
     (d,s,t) = eea a b
 
--- Multiplicative inverse of a mod m
+-- | a `invMod` m returns the inverse of a modulo m.
 invMod :: Integral a => a -> a -> a
 a `invMod` m
   | d /= 1    = error "Not coprime"

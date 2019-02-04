@@ -24,7 +24,7 @@ import System.Random
 
 import Math.Gen
 import Math.BigInt
-import Math.GCD
+import Math.Divisibility
 import Math.PowerModulo
 import Tools
 

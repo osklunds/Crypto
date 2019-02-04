@@ -13,7 +13,7 @@ import Control.Monad.Random.Lazy
 import Test.QuickCheck
 import Prelude hiding (take)
 
-import Math.Common
+import Math.Divisibility
 import Math.PowerModulo
 import Math.BigInt
 import Tools
