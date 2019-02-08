@@ -52,7 +52,7 @@ getKey bits
   | bits <= 4 = error "Too few bits"
   | otherwise = do
     p <- getPrime bits
-    q <- getDifferentPrime bits p
+    q <- getDiffPrime bits p
 
     let n     = p*q
         phiN  = (p-1)*(q-1)

@@ -1,6 +1,4 @@
 
--- | Modular exponentiation done efficiently.
-
 module Math.PowerModulo
 ( powerModulo
 )
