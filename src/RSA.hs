@@ -1,5 +1,5 @@
 
--- Module with functions for textbook RSA.
+-- | Textbook RSA.
 
 module RSA
 ( getKey
@@ -16,7 +16,6 @@ module RSA
 )
 where
 
-
 import Control.Monad.Random.Lazy
 import Control.Monad.Random.Class
 import Test.QuickCheck
@@ -28,10 +27,9 @@ import Math.Divisibility
 import Math.PowerModulo
 import Tools
 
-
--- Public key (N,e)
+-- | PubKey n e.
 data PubKey a = PubKey a a
--- Private key (N,d)
+-- | PriKey n d.
 data PriKey a = PriKey a a
 
 instance Show a => (Show (PubKey a)) where
@@ -46,36 +44,41 @@ instance Show a => (Show (PriKey a)) where
                       " d=" ++
                       show d
 
+-- | b bit keypair.
 getKey :: (Random a, Integral a, MonadRandom m) => 
   a -> m (PubKey a, PriKey a)
 getKey bits
   | bits <= 4 = error "Too few bits"
   | otherwise = do
-    p <- getPrime bits
-    q <- getDiffPrime bits p
+      p <- getPrime     bits
+      q <- getDiffPrime bits p
 
-    let n     = p*q
-        phiN  = (p-1)*(q-1)
-        -- If many bits, this shouldn't be security problem
-        -- Remember, this implementation is just for fun, not
-        -- for real use.
-        ePref = min (n `div` 2) 65537
-        e     = nextCoprime phiN ePref
-        d     = e `invMod` phiN
+      let n     = p*q
+          phiN  = (p-1)*(q-1)
+          -- If many bits, this shouldn't be security problem.
+          ePref = min (n `div` 2) 65537
+          e     = nextCoprime phiN ePref
+          d     = e `invMod` phiN
 
-    return (PubKey n e, PriKey n d)
+      return (PubKey n e, PriKey n d)
+
+-- can n m determines if m can be encrypted/decrypted/
+-- signed using modulus n.
+can :: Integral a => a -> a -> Bool
+can n m = m > 0 && m < n && coprime n m
 
 canEncrypt :: Integral a => PubKey a -> a -> Bool
-canEncrypt (PubKey n _) m = m > 0 && m < n && coprime n m
+canEncrypt (PubKey n _) m = can n m
 
 canDecrypt :: Integral a => PriKey a -> a -> Bool
-canDecrypt (PriKey n _) c = c > 0 && c < n && coprime n c
+canDecrypt (PriKey n _) c = can n c
 
 canSign :: Integral a => PriKey a -> a -> Bool
-canSign (PriKey n _) m = m > 0 && m < n && coprime n m
+canSign = canDecrypt
 
 canVerify :: Integral a => PubKey a -> a -> Bool
-canVerify (PubKey n _) m = m > 0 && m < n && coprime n m
+canVerify = canEncrypt
+
 
 encrypt :: Integral a => PubKey a -> a -> a
 encrypt pk@(PubKey n e) m
