@@ -31,18 +31,18 @@ a `coprime` b = gcd a b == 1
 eea :: Integral a => a -> a -> (a, a, a)
 eea a b
   -- Bases cases
-  | a == 0           = (abs b,0,signum b)
-  | b == 0           = (abs a,signum a,0)
-  | a < 0 || b < 0   = let (d,s,t) = eea (abs a) (abs b)
-                       in  (d, signum a * s, signum b * t)
+  | a == 0         = (abs b,0,signum b)
+  | b == 0         = (abs a,signum a,0)
+  | a < 0 || b < 0 = let (d,s,t) = eea (abs a) (abs b)
+                     in  (d, signum a * s, signum b * t)
   -- Recursive cases
-  | r == 0 = (b,0,1)
-  | r /= 0 = (d,s,t)
+  | r == 0         = (b,0,1)
+  | r /= 0         = (d,s,t)
   where
-    r = a `mod` b
-    q = a `div` b
+    r         = a `mod` b
+    q         = a `div` b
     (d,s',t') = eea b r
-    (s,t) = (t',s'-q*t')
+    (s,t)     = (t',s'-q*t')
 
 prop_eea :: BigInt10000000 -> BigInt10000000 -> Bool
 prop_eea a b = gcd a b == d && a*s+b*t == d && d >= 0
