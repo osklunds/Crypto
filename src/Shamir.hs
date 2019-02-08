@@ -1,4 +1,6 @@
 
+-- | Shamir's Secret Sharing.
+
 module Shamir
 ( share
 , recover
@@ -14,7 +16,9 @@ import Control.Monad.Random.Lazy
 import Math.Divisibility
 import Math.BigInt
 import Math.Gen
+import Math.Prime
 import Tools
+import Tools.MonadRandom
 
 -- poly [c0..cm] q x computes the value of the polynomial
 -- function with coefficients c0 to cm, at x, modulo q.
@@ -32,47 +36,27 @@ prop_poly cs q x = q >= 2 ==> sum1 == sum2
     sum2 = (sum $ zipWith (\c e -> c*x^e) cs [0..]) `mod` q
 
 
--- share g s n t q computes the n secret shares of s, where
+-- | share s n t q computes the n secret shares of s, where
 -- the threshold is t, modulo q.
-share :: (Random a, Integral a, MonadRandom m) => 
+share :: (Integral a, Random a, MonadRandom m) => 
   a -> a -> a -> a -> m [a]
 share s n t q
-  | not (t >= 1 && 
-         n > t && 
-         q >= 2) &&
-         n >= q = error "Invalid arguments"
-  | otherwise    = do
-    infCoeffs <- getRandomRs (0,q-1)
-    let coeffs  = s:(take t infCoeffs)
-        polyFun = poly coeffs q
-    return $ map polyFun [1..n]
+  | not (t >= 1 && n > t && q >= 2) = error "Invalid arguments"
+  | not (prime q) || n >= q         = error "Bad modulus"
+  -- The reason is, in beta function, inverses of numbers
+  -- at most n will be calculated mod q. So if q is prime > n
+  -- such inverses will exist.
+  | otherwise = do
+      infCoeffs   <- getRandomRs (0,q-1)
+      let coeffs  =  s:(take t infCoeffs)
+          polyFun =  poly coeffs q
+      return $ map polyFun [1..n]
 
 
 -- beta js q i calculates beta i, when parties js are 
 -- involved, modulo q.
 beta :: Integral a => [a] -> a -> a -> a
-beta []     _ _ = 1
-beta (j:js) q i
-  | i == j    = beta js q i
-  | otherwise = j * ((j-i) `invMod` q) * beta js q i `mod` q
-
--- Generates a list of n unique random integers modulo q.
--- q should be much larger than n to speed up calculation.
-getRandomListU :: (Random a, Integral a, MonadRandom m) => 
-  a -> a -> m [a]
-getRandomListU 0 _ = return []
-getRandomListU n q = do
-  rs <- getRandomListU (n-1) q
-  r <- getRandomNotIn rs q
-  return (r:rs)
-
-getRandomNotIn :: (Random a, Integral a, MonadRandom m) => 
-  [a] -> a -> m a
-getRandomNotIn ns q = do
-  n <- getRandomR (0,q-1)
-  if n `elem` ns
-    then getRandomNotIn ns q
-    else return n
+beta js q i = product [j * (j-i) `invMod` q | j <- js, j /= i] `mod` q
 
 -- prop_beta g n ne q, generates a degree n polynomial
 -- and tests it with n+ne beta values, modulo q.
@@ -83,34 +67,32 @@ prop_beta :: StdGen ->
              Property
 prop_beta g n ne q = n' >= 1 ==> s == s'
   where
-    n'  = n `mod` 40  -- Cap the degree
-    ne' = ne `mod` 20 -- Cap the number of extra points
+    n'    = n  `mod` 40 -- Performance reason
+    ne'   = ne `mod` 20 -- Performance reason
+    q'    = nextPrime (max q (n'+ne'+1))
+    range = (0,q'-1)
 
-    -- Need to make the modulo large enough so that
-    -- is a prime greater than largest j in the
-    -- beta calculation
-    q' = nextPrime (max q (n'+ne'+1))
-
-    -- cs: n' coefficients to the polynomial
+    -- cs:    n' coefficients to the polynomial
     -- xVals: n'+ne' unique random x values
     (cs, xVals) = fst $ runRand f g
+      where
+        f = do
+          cs    <- getRandomRs  (0,q'-1)
+          xVals <- getRandomRsU (0,q'-1) (n'+ne')
+          return (take n' cs, xVals)
     s = head cs
-    f = do
-      cs <- getRandomRs (0,q'-1)
-      xVals <- getRandomListU (n'+ne') q'
-      return (take n' cs, take (n'+ne') xVals)
     
     yVals = map (poly cs    q') xVals
     bVals = map (beta xVals q') xVals
 
-    -- Sum using beta values
+    -- polynomial at 0 using beta values
     s' = (sum $ zipWith (*) bVals yVals) `mod` q'
 
 
--- recover pi_s si_s q, recovers the share using the
+-- | recover si_s pi_s q, recovers the share using the
 -- shares si_s from parties pi_s, modulo q.
 recover :: Integral a => [a] -> [a] -> a -> a
-recover pi_s si_s q = sum prods `mod` q
+recover si_s pi_s q = sum prods `mod` q
   where
     bi_s  = map (beta pi_s q) pi_s
     prods = zipWith (*) bi_s si_s
@@ -124,20 +106,19 @@ prop_shareRecover :: StdGen ->
 prop_shareRecover g s n t q = n' > 0 && t' >= 1 && n' > t' ==>
   s_rec == s'
   where
-    n' = n `mod` 40 + 2
-    t' = (t `mod` (n'-1)) + 1
-    q' = nextPrime (max q n'+1)
-    s' = s `mod` q'
+    n' = n `mod` 40 + 2         -- Performance
+    t' = (t `mod` (n'-1)) + 1   -- Performance
+    q' = nextPrime (max q n'+1) -- Correct arguments
+    s' = s `mod` q'             -- Performance
     
     (si_sAll, pi_s) = fst $ runRand f g
-    f = do
-      si_sAll <- share s' n' t' q'
-      -- Picks between t'+1 and n' parties that collaborate
-      numP    <- getRandomR (t'+1,n')
-      pi_s    <- getRandomListU numP n'
-      return (si_sAll, pi_s)
+      where
+        f = do
+          si_sAll <- share s' n' t' q'
+          -- Picks between t'+1 and n' parties that collaborate
+          numP    <- getRandomR   (t'+1,n')
+          pi_s    <- getRandomRsU (1,n') numP
+          return (si_sAll, pi_s)
 
-    pi_s'      = map (+1) pi_s
-    si_s       = [si_sAll !! pi | pi <- pi_s]
-
-    s_rec = recover pi_s' si_s q'
+    si_s  = [si_sAll !! (pi-1) | pi <- pi_s]
+    s_rec = recover si_s pi_s q'
