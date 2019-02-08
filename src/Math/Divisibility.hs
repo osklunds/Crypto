@@ -1,6 +1,4 @@
 
--- | Divisibility and related, such as greatest common divisor.
-
 module Math.Divisibility
 ( divides
 , gcd
