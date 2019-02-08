@@ -1,11 +1,11 @@
 
 # Crypto
 
-Textbook implementations of cryptographic algorithms in Haskell. So far I have implemented:
+Implementations of cryptographic algorithms in Haskell. So far I have implemented:
 
-- Textbook RSA
-- Shamir Secret Sharing
-- SHA256
+- Textbook [RSA](https://en.wikipedia.org/wiki/RSA_(cryptosystem))
+- [Shamir's Secret Sharing](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing)
+- [SHA256](https://en.wikipedia.org/wiki/SHA-2)
 
 In this project I strive (but do not claim I succeed) to follow these design principles:
 
@@ -40,11 +40,11 @@ Implementation of textbook RSA.
 
 ### Shamir
 
-Implementation of [Shamir's Secret Sharing](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing).
+Implementation of Shamir's Secret Sharing.
 
 - `Example` Example usage of the secret sharing scheme.
 
-### SHA256
+### SHA256 (WIP)
 
 Implementation of SHA256.
 
