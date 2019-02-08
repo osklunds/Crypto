@@ -7,7 +7,7 @@ Textbook implementations of cryptographic algorithms in Haskell. So far I have i
 - Shamir Secret Sharing
 - SHA256
 
-In this project I strive to follow these design principles:
+In this project I strive (but do not claim I succeed) to follow these design principles:
 
 - Elegance
 - DRY
@@ -22,34 +22,31 @@ Change directory to `src/` and type `ghci`. Now load the module you want to run.
 
 ![](misc/module_overview.png)
 
-- `Math` Discrete mathematics. (Note: there is no top-level `Math` module.) Used by the other modules.
-- `RSA` Textbook RSA cryptography and signatures.
-- `Shamir` Shamir's Secret Sharing Scheme.
-- `SHA256` The SHA256 hash function.
-
 ### Math
 
-The main stars of the math module are
+The `Math` module provides discrete mathematics functions used by the cryptographic modules.
 
-- `GCD` Extended Euclidean Algorithm and related.
+- `Divisibility` Divisibility test, Extended Euclidean Algorithm and co.
 - `PowerModulo` Modular exponentiation done efficiently.
 - `Prime` Primality testing using the Miller-Rabin test.
 - `Gen` Generation of coprimes and primes.
-
-The minor modules are
-
-- `BigInt` Data types with `Arbitrary` instances giving larger numbers.
-- `Common` Small auxillary functions used by several modules.
+- `BigInt` Data types with `Arbitrary` instances giving larger numbers. Used for testing-purposes.
 
 ### RSA
 
-`Example` Example usage of the RSA library.
+Implementation of textbook RSA.
+
+- `Example` Example usage of the RSA library.
 
 ### Shamir
 
-`Example` Example usage of the secret sharing scheme.
+Implementation of [Shamir's Secret Sharing](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing).
+
+- `Example` Example usage of the secret sharing scheme.
 
 ### SHA256
+
+Implementation of SHA256.
 
 - `Compression` Compression function used by SHA256.
 - `Constants` Round constants and initial hash values.
