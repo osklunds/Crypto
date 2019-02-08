@@ -2,7 +2,10 @@
 -- | Shamir's Secret Sharing.
 
 module Shamir
-( share
+( ShareIdPair(..)
+, ShamirParams(..)
+, validParams
+, share
 , recover
 )
 where
