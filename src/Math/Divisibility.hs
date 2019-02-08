@@ -30,19 +30,12 @@ a `coprime` b = gcd a b == 1
 -- | eea a b returns (d,s,t) s.t. d=as+bt.
 eea :: Integral a => a -> a -> (a, a, a)
 eea a b
-  -- Special cases
-  | a == 0 && b == 0 = (0,0,0)
+  -- Bases cases
   | a == 0           = (abs b,0,signum b)
   | b == 0           = (abs a,signum a,0)
-  | a < 0 && b > 0   = let (d,s,t) = eea (-a) b
-                       in  (d,-s,t)
-  | a > 0 && b < 0   = let (d,s,t) = eea a (-b)
-                       in  (d,s,-t)
-  | a < 0 && b < 0   = let (d,s,t) = eea (-a) (-b)
-                       in  (d,-s,-t)
-
+  | a < 0 || b < 0   = let (d,s,t) = eea (abs a) (abs b)
+                       in  (d, signum a * s, signum b * t)
   -- Recursive cases
-  | a == b = (a,1,0)
   | r == 0 = (b,0,1)
   | r /= 0 = (d,s,t)
   where
