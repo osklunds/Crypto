@@ -1,5 +1,5 @@
 
--- Types for integers with Arbitrary instances giving
+-- | Types for integers with Arbitrary instances giving
 -- larger numbers than Int and Integer gives.
 
 {-# LANGUAGE FlexibleInstances #-}
@@ -23,22 +23,19 @@ data L10000000
 data BigInt a = BigInt Integer
                deriving Show
 
+arbitrarySize :: Integer -> Gen (BigInt a)
+arbitrarySize n = choose (-n,n) >>= return . BigInt
+
 instance Arbitrary (BigInt L1000) where
-  arbitrary = do
-    i <- choose (-1000,1000)
-    return $ BigInt i
+  arbitrary = arbitrarySize 1000
 
 instance Arbitrary (BigInt L100000) where
-  arbitrary = do
-    i <- choose (-100000,100000)
-    return $ BigInt i
+  arbitrary = arbitrarySize 100000
 
 instance Arbitrary (BigInt L10000000) where
-  arbitrary = do
-    i <- choose (-10000000,10000000)
-    return $ BigInt i
+  arbitrary = arbitrarySize 10000000
 
--- Short forms
+-- | Integer with Arbitrary instance giving between -1000 and 1000.
 type BigInt1000 = BigInt L1000
 type BigInt100000 = BigInt L100000
 type BigInt10000000 = BigInt L10000000
@@ -46,19 +43,24 @@ type BigInt10000000 = BigInt L10000000
 unwrap :: BigInt a -> Integer
 unwrap (BigInt i) = i
 
-unOp :: (Integer -> Integer) -> BigInt a -> BigInt a
-unOp op (BigInt a) = BigInt $ op a
+liftUnInt :: (Integer -> Integer) -> 
+             (BigInt a -> BigInt a)
+liftUnInt op (BigInt a) = BigInt $ op a
 
-binOp :: (Integer -> Integer -> Integer) -> 
-         BigInt a -> BigInt a -> BigInt a
-binOp op (BigInt a) (BigInt b) = BigInt (a `op` b)
+liftBinInt :: (Integer -> Integer -> Integer) -> 
+              (BigInt a -> BigInt a -> BigInt a)
+liftBinInt op (BigInt a) (BigInt b) = BigInt $ a `op` b
+
+liftBinGen :: (Integer -> Integer -> b) ->
+              (BigInt a -> BigInt a -> b)
+liftBinGen op (BigInt a) (BigInt b) = a `op` b
 
 instance Num (BigInt a) where
-  (+)         = binOp (+)
-  (-)         = binOp (-)
-  (*)         = binOp (*)
-  abs         = unOp abs
-  signum      = unOp signum
+  (+)         = liftBinInt (+)
+  (-)         = liftBinInt (-)
+  (*)         = liftBinInt (*)
+  abs         = liftUnInt abs
+  signum      = liftUnInt signum
   fromInteger = BigInt
 
 instance Enum (BigInt a) where
@@ -66,10 +68,10 @@ instance Enum (BigInt a) where
   fromEnum = fromEnum . unwrap
 
 instance Eq (BigInt a) where
-  (BigInt a) == (BigInt b) = a == b
+  (==) = liftBinGen (==)
 
 instance Ord (BigInt a) where
-  (BigInt a) `compare` (BigInt b) = a `compare` b
+  compare = liftBinGen compare
 
 instance Real (BigInt a) where
   toRational = toRational . unwrap
@@ -84,8 +86,6 @@ instance Random (BigInt a) where
                                    in  (BigInt r, g')
   random g                       = let (r, g') = random g
                                    in  (BigInt r, g')
-
-applyInside op (BigInt a) = BigInt (op a)
 
 instance Bits (BigInt a) where
   (BigInt a) `shiftL` i = BigInt (a `shiftL` i)
