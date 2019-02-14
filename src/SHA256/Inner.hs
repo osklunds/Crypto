@@ -1,5 +1,5 @@
 
-module SHA256.Compression
+module SHA256.Inner
 ( comp
 )
 where
@@ -43,8 +43,8 @@ digestAdd :: Digest -> Digest -> Digest
 digestAdd (a1,b1,c1,d1,e1,f1,g1,h1) (a2,b2,c2,d2,e2,f2,g2,h2) =
   (a1+a2,b1+b2,c1+c2,d1+d2,e1+e2,f1+f2,g1+g2,h1+h2)
 
-compSingleRound :: Word32 -> Word32 -> State Digest ()
-compSingleRound ki wi = state $ \(a,b,c,d,e,f,g,h) ->
+compRound :: Word32 -> Word32 -> State Digest ()
+compRound ki wi = state $ \(a,b,c,d,e,f,g,h) ->
   let t1 = h + s1 e + ch e f g h + ki + wi
       t2 = s0 a + maj a b c
 
@@ -59,12 +59,7 @@ compSingleRound ki wi = state $ \(a,b,c,d,e,f,g,h) ->
 
   in  ((),(a',b',c',d',e',f',g',h'))
 
-compAllRounds :: [Word32] -> [Word32] -> State Digest ()
-compAllRounds []     []     = return ()
-compAllRounds (k:ks) (w:ws) = compSingleRound k w >>= 
-                              (\_ -> compAllRounds ks ws)
-
 comp :: [Word32] -> [Word32] -> State Digest ()
-comp ks ws = state $ \d ->
-  let (_,d') = runState (compAllRounds ks ws) d
-  in  ((),(digestAdd d d'))
+comp []     []     = return ()
+comp (k:ks) (w:ws) = compRound k w >>= 
+                     (\_ -> comp ks ws)
