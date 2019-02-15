@@ -5,12 +5,14 @@ module SHA256.Constants
 )
 where
 
-import Math.Prime
 import Prelude hiding ((!!), take)
-
 import Data.Word
 import Numeric
+
+import Math.Prime
+import SHA256.Types
 import Tools
+
 
 primes :: [Word32]
 primes = filter prime [0..]
@@ -26,7 +28,7 @@ roundConstant = ceiling .
                 (**(1.0/3.0)) . 
                 fromIntegral
 
-roundConstants :: [Word32]
+roundConstants :: RoundWords
 roundConstants = map roundConstant $ take 64 primes
 
 roundConstantsRef :: String
@@ -43,7 +45,7 @@ singleInitialHash = ceiling .
                     (**(1.0/2.0)) .
                     fromIntegral
 
-initialHash :: [Word32]
+initialHash :: Digest
 initialHash = map singleInitialHash $ take 8 primes
 
 initialHashRef :: String

@@ -7,6 +7,8 @@ where
 import Data.Word
 import Data.Bits
 
+import SHA256.Types
+
 s0 :: Word32 -> Word32
 s0 w15 = (w15 `rotateR` 7 ) `xor`
          (w15 `rotateR` 18) `xor`
@@ -16,7 +18,7 @@ s1 w2  = (w2  `rotateR` 17) `xor`
          (w2  `rotateR` 19) `xor`
          (w2  `shiftR`  10)
 
-messageSchedule :: [Word32] -> [Word32]
+messageSchedule :: Chunk -> RoundWords
 messageSchedule chunk = let list = chunk ++ map ms [16..63]
                             ms i = w16 + s0 w15 + w7 + s1 w2
                               where
