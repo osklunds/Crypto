@@ -32,7 +32,7 @@ group _ [] = []
 group n l  = (take n l) : (group n (drop n l))
 
 toHex :: (Show a, Integral a) => a -> String
-toHex n = "0x" ++ showHex n ""
+toHex n = showHex n ""
 
 (!!) :: Integral a => [b] -> a -> b
 []     !! _ = error "Out of range"
