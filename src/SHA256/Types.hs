@@ -1,6 +1,6 @@
 
 module SHA256.Types
-( BitString
+( ByteString
 , CompVars
 , Chunk
 , RoundWords
@@ -10,7 +10,7 @@ where
 
 import Data.Word
 
-type BitString  = [Word8]  -- Arbitrary length
+type ByteString = [Word8]  -- Arbitrary length
 type CompVars   = [Word32] -- 8
 type Chunk      = [Word32] -- 16
 type RoundWords = [Word32] -- 64
