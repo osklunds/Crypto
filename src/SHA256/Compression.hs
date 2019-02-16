@@ -7,8 +7,8 @@ where
 import Data.Word
 import Data.Bits
 
-import SHA256.Constants
 import SHA256.Types
+import SHA256.Constants
 
 s0 :: Word32 -> Word32
 s0 a = (a `rotateR` 2 ) `xor`
