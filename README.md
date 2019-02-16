@@ -7,13 +7,6 @@ Implementations of cryptographic algorithms in Haskell. So far I have implemente
 - [Shamir's Secret Sharing](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing)
 - [SHA256](https://en.wikipedia.org/wiki/SHA-2)
 
-In this project I strive (but do not claim I succeed) to follow these design principles:
-
-- Elegance
-- DRY
-- KISS
-- Narrow interfaces
-
 ## How to run
 
 Change directory to `src/` and type `ghci`. Now load the module you want to run. Some modules require the package `MonadRandom`, which you can install with `cabal install MonadRandom`.
