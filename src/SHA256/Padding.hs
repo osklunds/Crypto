@@ -8,29 +8,24 @@ import Prelude hiding (length, take)
 import Data.Word
 import Data.Bits
 import Numeric
+import Tools
 
 import Math.Divisibility
-import Tools
 import SHA256.Types
+import SHA256.RepConv
 
-
-appendOne :: BitString -> BitString
+appendOne :: ByteString -> ByteString
 appendOne = (++ [128])
 
-appendZeros :: BitString -> BitString
-appendZeros bitString
-  | isMultiple = bitString
-  | otherwise  = appendZeros (bitString ++ [0])
+appendZeros :: ByteString -> ByteString
+appendZeros bs
+  | isMultiple = bs
+  | otherwise  = appendZeros (bs ++ [0])
   where
-    isMultiple = 512 `divides` (length bitString * 8 + 64)
+    isMultiple = 512 `divides` (length bs * 8 + 64)
 
+appendLength :: ByteString -> ByteString -> ByteString
+appendLength bs = (++ (w64ToW8List $ 8 * length bs))
 
-w64ToW8List :: Word64 -> BitString
-w64ToW8List w64 = [fromIntegral (w64 `shiftR` i) | i <- [56,48..0]]
-
-appendLength :: BitString -> BitString -> BitString
-appendLength bs = (++ w64ToW8List (8 * length bs))
-
-
-pad :: BitString -> BitString
+pad :: ByteString -> ByteString
 pad bs = appendLength bs . appendZeros . appendOne $ bs
