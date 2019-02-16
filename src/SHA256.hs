@@ -23,7 +23,7 @@ processChunks d (c:cs) = processChunks (compress ks ws d) cs
     ws = messageSchedule c
 
 padAndChunk :: ByteString -> [Chunk]
-padAndChunk = group 16 . map w8sToW32 . group 4 . pad
+padAndChunk = group 16 . map w8x4ToW32 . group 4 . pad
 
 sha256 :: String -> String
-sha256 = w32sToHex . processChunks initialHash . padAndChunk . asciiToW8s
+sha256 = w32x8ToHex . processChunks initialHash . padAndChunk . asciiToW8list

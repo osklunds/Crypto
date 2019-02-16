@@ -25,7 +25,7 @@ appendZeros bs
     isMultiple = 512 `divides` (length bs * 8 + 64)
 
 appendLength :: ByteString -> ByteString -> ByteString
-appendLength bs = (++ (w64ToW8List $ 8 * length bs))
+appendLength bs = (++ (w64ToW8x8 $ 8 * length bs))
 
 pad :: ByteString -> ByteString
 pad bs = appendLength bs . appendZeros . appendOne $ bs
