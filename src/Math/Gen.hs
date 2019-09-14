@@ -28,7 +28,7 @@ nextPrime = nextMeetingCondition prime
 
 -- Generates a random b bit prime.
 randomPrime :: (NumClass a, RandomGen g) => a -> g -> (a, g)
-randomPrime b g = (p, g)
+randomPrime b g = (p, g')
   where
     (n, g') = randomR (2^(b-1),2^b-1) g
     p       = nextPrime n
