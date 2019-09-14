@@ -6,34 +6,40 @@ where
 
 import Test.QuickCheck
 import Prelude hiding (length)
+import Data.Bits
 
 import Math.BigInt
 import Tools
 
 -- powerModulo b e m calculates b^e modulo m efficiently.
 -- Requirements: e>=0 and m>=2.
-powerModulo :: Integral a => a -> a -> a -> a
-powerModulo b e m = foldr f 1 (toBin e)
+powerModulo :: (Bits a, Integral a) => a -> a -> a -> a
+powerModulo b e m = foldr f 1 (toBits e)
   where
-    f 0 z = z^2 `mod` m
-    f 1 z = f 0 z * b `mod` m
+    f False z = z^2     `mod` m
+    f True  z = z^2 * b `mod` m
 
--- Positive base-10 integer to LSB-first bit string.
-toBin :: Integral a => a -> [a]
-toBin 0 = []
-toBin n = let (q, r) = n `quotRem` 2
-          in  r:(toBin q)
+-- Converts an integer to an LSB-first bitstream.
+toBits :: Bits a => a -> [Bool]
+toBits n = includeTrues bits bitLen
+  where
+    bits   = map (testBit n) [0..]
+    bitLen = popCount n
 
-prop_toBin :: BigInt7 -> Property
-prop_toBin n = n >= 0 ==> (==n) . toDec . reverse . toBin $ n
+-- Takes from the bitsream until the amount of Trues has been included.
+includeTrues :: [Bool] -> Int -> [Bool]
+includeTrues _          0 = []
+includeTrues (True:bs)  n = True:(includeTrues bs $ n-1)
+includeTrues (False:bs) n = False:(includeTrues bs n)
 
--- MSB-first bit string to positive base-10 integer.
-toDec :: Integral a => [a] -> a
-toDec = toDec' . reverse
+prop_toBits :: BigInt7 -> Property
+prop_toBits n = n >= 0 ==> toInt (toBits n) == n
 
-toDec' :: Integral a => [a] -> a
-toDec' [] = 0
-toDec' (b:bs) = b + 2 * toDec' bs
+toInt :: Integral a => [Bool] -> a
+toInt bs = foldr f 0 bs
+  where
+    f False sum = sum*2
+    f True  sum = sum*2+1
 
 prop_powerModulo :: BigInt5 -> BigInt5 -> BigInt5 -> Property
 prop_powerModulo b e m = e >= 0 && m >= 2 ==> correct

@@ -50,9 +50,11 @@ type BigInt7 = BigInt L7
 unwrap :: BigInt a -> Integer
 unwrap (BigInt i) = i
 
-liftUnInt :: (Integer -> Integer) -> 
-             (BigInt a -> BigInt a)
+liftUnInt :: (Integer -> Integer) -> (BigInt a -> BigInt a)
 liftUnInt op (BigInt a) = BigInt $ op a
+
+liftUnGen :: (Integer -> b) -> (BigInt a -> b)
+liftUnGen op (BigInt a) = op a
 
 liftBinInt :: (Integer -> Integer -> Integer) -> 
               (BigInt a -> BigInt a -> BigInt a)
@@ -96,8 +98,11 @@ instance Random (BigInt a) where
 
 instance Bits (BigInt a) where
   (BigInt a) `shiftL` i = BigInt (a `shiftL` i)
-  (.|.) = liftBinInt (.|.)
-  bit i = BigInt (bit i)
+  
+  (.|.)    = liftBinInt (.|.)
+  bit i    = BigInt (bit i)
+  popCount = liftUnGen popCount
+  testBit  = liftUnGen testBit
 
   (.&.)        = undefined
   xor          = undefined
@@ -107,8 +112,7 @@ instance Bits (BigInt a) where
   bitSize      = undefined
   bitSizeMaybe = undefined
   isSigned     = undefined
-  testBit      = undefined
-  popCount     = undefined
+  
 
 
 
