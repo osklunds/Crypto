@@ -14,7 +14,10 @@ import Math.BigInt
 
 -- divides d n tests if d divides n.
 divides :: Integral a => a -> a -> Bool
-d `divides` n = d `mod` n == 0
+d `divides` n = n `mod` d == 0
+
+prop_divides :: BigInt7 -> BigInt7 -> Bool
+prop_divides d f = d `divides` (d*f)
 
 gcd :: Integral a => a -> a -> a
 gcd a b
