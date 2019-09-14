@@ -35,17 +35,14 @@ coprime :: Integral a => a -> a -> Bool
 a `coprime` b = gcd a b == 1
 
 
--- eea a b returns (d,s,t) s.t. d=as+bt.
+-- eea a b returns (d,s,t) s.t. d=as+bt. d>0 unless a=b=0.
 eea :: Integral a => a -> a -> (a, a, a)
 eea a b
-  -- Bases cases
-  | a == 0         = (abs b,0,signum b)
   | b == 0         = (abs a,signum a,0)
   | a < 0 || b < 0 = let (d,s,t) = eea (abs a) (abs b)
                      in  (d, signum a * s, signum b * t)
-  -- Recursive cases
-  | r == 0         = (b,0,1)
-  | r /= 0         = (d,s,t)
+  
+  | otherwise      = (d,s,t)
   where
     r         = a `mod` b
     q         = a `div` b
@@ -53,9 +50,12 @@ eea a b
     (s,t)     = (t',s'-q*t')
 
 prop_eea :: BigInt7 -> BigInt7 -> Bool
-prop_eea a b = gcd a b == d && a*s+b*t == d && d >= 0
+prop_eea a b = gcdCorrect && gcdPositive && prodSumCorrect
   where
-    (d,s,t) = eea a b
+    (d,s,t)        = eea a b
+    gcdCorrect     = gcd a b == d
+    gcdPositive    = if a /= 0 || b /= 0 then d > 0 else d == 0
+    prodSumCorrect = a*s+b*t == d
 
 
 -- | a `invMod` m returns the inverse of a modulo m.
