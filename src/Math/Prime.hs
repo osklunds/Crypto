@@ -12,11 +12,12 @@ import Data.Bits
 import Math.Divisibility
 import Math.PowerModulo
 import Math.BigInt
+import Math.NumClass
 import Tools
 
 -- The final prime function. To provide a simpler interface,
 -- the randomness is hard-coded.
-prime :: (Bits a, Integral a, Random a) => a -> Bool
+prime :: NumClass a => a -> Bool
 prime n
   | n <  10000 = primeDet n
   | n >= 10000 = fst $ millerRabin n 64 $ mkStdGen 123
@@ -31,7 +32,7 @@ primeDet n
     divisors = filter (`divides` n) [2..n-1]
 
 -- millerRabin n k g does k MR rounds testing n for primality.
-millerRabin :: (RandomGen g, Random a, Integral a, Bits a) =>
+millerRabin :: (NumClass a, RandomGen g) =>
   a -> a -> g -> (Bool, g)
 millerRabin _ 0 g = (True, g)
 millerRabin n k g = (this && rest, g'')
