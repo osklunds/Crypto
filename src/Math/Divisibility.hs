@@ -23,12 +23,15 @@ prop_divides d f = d `divides` (d*f)
 
 gcd :: Integral a => a -> a -> a
 gcd a b
-  | b == 0         = a
   | a < 0 || b < 0 = gcd (abs a) (abs b)
+  | b == 0         = a
   | otherwise      = gcd b (a `mod` b)
 
-prop_gcd :: BigInt7 -> BigInt7 -> Bool
-prop_gcd a b = gcd a b == Prelude.gcd a b
+prop_gcd :: BigInt7 -> BigInt7 -> Bool -> Bool -> Property
+prop_gcd a b a1 b1 = collect (gcd a' b') $ gcd a' b' == Prelude.gcd a' b'
+  where
+    a' = if a1 then a else 0
+    b' = if b1 then b else 0
 
 
 coprime :: Integral a => a -> a -> Bool
