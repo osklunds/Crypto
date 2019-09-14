@@ -25,7 +25,6 @@ gcd :: Integral a => a -> a -> a
 gcd a b
   | b == 0         = a
   | a < 0 || b < 0 = gcd (abs a) (abs b)
-  | b > a          = gcd b a
   | otherwise      = gcd b (a `mod` b)
 
 prop_gcd :: BigInt7 -> BigInt7 -> Bool
