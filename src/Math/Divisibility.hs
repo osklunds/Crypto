@@ -2,8 +2,8 @@
 module Math.Divisibility
 ( divides
 , gcd
-, eea
 , coprime
+, eea
 , invMod
 )
 where
@@ -27,17 +27,15 @@ gcd a b
   | b == 0         = a
   | otherwise      = gcd b (a `mod` b)
 
-prop_gcd :: BigInt7 -> BigInt7 -> Bool -> Bool -> Property
-prop_gcd a b a1 b1 = collect (gcd a' b') $ gcd a' b' == Prelude.gcd a' b'
-  where
-    a' = if a1 then a else 0
-    b' = if b1 then b else 0
+prop_gcd :: BigInt7 -> BigInt7 -> Property
+prop_gcd a b = collect (gcd a b) $ gcd a b == Prelude.gcd a b
 
 
 coprime :: Integral a => a -> a -> Bool
 a `coprime` b = gcd a b == 1
 
--- | eea a b returns (d,s,t) s.t. d=as+bt.
+
+-- eea a b returns (d,s,t) s.t. d=as+bt.
 eea :: Integral a => a -> a -> (a, a, a)
 eea a b
   -- Bases cases
@@ -58,6 +56,7 @@ prop_eea :: BigInt7 -> BigInt7 -> Bool
 prop_eea a b = gcd a b == d && a*s+b*t == d && d >= 0
   where
     (d,s,t) = eea a b
+
 
 -- | a `invMod` m returns the inverse of a modulo m.
 invMod :: Integral a => a -> a -> a
