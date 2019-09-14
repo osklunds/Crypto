@@ -34,8 +34,14 @@ instance Arbitrary (BigInt L7) where
   arbitrary = arbitrarySized (10^7)
 
 arbitrarySized :: Integer -> Gen (BigInt a)
-arbitrarySized n = choose (-n,n) >>= return . BigInt
-
+arbitrarySized n = frequency values >>= return . BigInt
+  where
+    values = [(2, return 0),
+              (1, return 1),
+              (1, return 2),
+              (1, return (-1)),
+              (1, return (-2)),
+              (5, choose (-n,n))]
 
 type BigInt3 = BigInt L3
 type BigInt5 = BigInt L5
