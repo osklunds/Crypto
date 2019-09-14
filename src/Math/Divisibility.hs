@@ -58,7 +58,8 @@ prop_eea a b = gcdCorrect && gcdPositive && prodSumCorrect
     prodSumCorrect = a*s+b*t == d
 
 
--- | a `invMod` m returns the inverse of a modulo m.
+-- a `invMod` m returns the inverse of a modulo m. 
+-- Requirements: a>0, m>=2, a and m coprime.
 invMod :: Integral a => a -> a -> a
 a `invMod` m
   | d /= 1    = error "Not coprime"
@@ -67,7 +68,7 @@ a `invMod` m
     (d,s,_) = eea a m
 
 prop_invMod :: BigInt7 -> BigInt7 -> Property
-prop_invMod a m = a > 0 && m > 2 && a `coprime` m ==>
-  i > 0 && i < m && a*i `mod` m == 1
+prop_invMod a m = a > 0 && m >= 2 && a `coprime` m ==>
+  aInv > 0 && aInv < m && a*aInv `mod` m == 1
   where
-    i = a `invMod` m
+    aInv = a `invMod` m
