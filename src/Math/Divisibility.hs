@@ -9,6 +9,7 @@ module Math.Divisibility
 where
 
 import Prelude hiding (gcd)
+import qualified Prelude (gcd)
 import Test.QuickCheck
 import Math.BigInt
 
@@ -19,13 +20,17 @@ d `divides` n = n `mod` d == 0
 prop_divides :: BigInt7 -> BigInt7 -> Bool
 prop_divides d f = d `divides` (d*f)
 
+
 gcd :: Integral a => a -> a -> a
 gcd a b
+  | b == 0         = a
   | a < 0 || b < 0 = gcd (abs a) (abs b)
   | b > a          = gcd b a
-  | b == 0         = a
-  | b `divides` a  = b
   | otherwise      = gcd b (a `mod` b)
+
+prop_gcd :: BigInt7 -> BigInt7 -> Bool
+prop_gcd a b = gcd a b == Prelude.gcd a b
+
 
 coprime :: Integral a => a -> a -> Bool
 a `coprime` b = gcd a b == 1
