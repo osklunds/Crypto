@@ -2,43 +2,41 @@
 module Math.Gen
 ( nextCoprime
 , nextPrime
-, getPrime
-, getDiffPrime
+, randomPrime
+, randomDiffPrime
 )
 where
 
-import System.Random hiding (next)
-import Control.Monad.Random.Class
-import Control.Monad.Random.Lazy hiding (next)
 import Test.QuickCheck
+import System.Random
+import Data.Bits
 
 import Math.Divisibility
 import Math.Prime
 
 
-next :: Enum a => (a -> Bool) -> a -> a
-next c n = head $ filter c [n..]
-
--- | nextCoprime n s returns smallest coprime, >= s, to n.
+-- nextCoprime n s returns the smallest coprime, >= s, to n.
 nextCoprime :: Integral a => a -> a -> a
-nextCoprime n = next (coprime n)
+nextCoprime n = nextMeetingCondition (coprime n)
 
-nextPrime :: (Random a, Integral a) => a -> a
-nextPrime = next prime
+nextMeetingCondition :: Enum a => (a -> Bool) -> a -> a
+nextMeetingCondition c n = head $ filter c [n..]
 
+nextPrime :: (Bits a, Random a, Integral a) => a -> a
+nextPrime = nextMeetingCondition prime
 
--- | Generates b bit prime.
-getPrime :: (Random a, Integral a, MonadRandom m) => a -> m a
-getPrime b = do 
-  n <- getRandomR (2^(b-1),2^b-1)
-  return $ nextPrime n
+-- Generates a random b bit prime.
+randomPrime :: (RandomGen g, Random a, Integral a, Bits a) => a -> g -> (a, g)
+randomPrime b g = (p, g)
+  where
+    (n, g') = randomR (2^(b-1),2^b-1) g
+    p       = nextPrime n
 
--- | getDiffPrime b p generates a b bit prime distinct 
--- from p.
-getDiffPrime :: (Random a, Integral a, MonadRandom m) =>
-  a -> a -> m a
-getDiffPrime b p = do
-  p' <- getPrime b
-  if p == p'
-    then getDiffPrime b p
-    else return p'
+-- Generates a random b bit prime different from p.
+randomDiffPrime :: (RandomGen g, Random a, Integral a, Bits a) =>
+  a -> a -> g -> (a, g)
+randomDiffPrime b p g
+  | p == p'   = randomDiffPrime b p g'
+  | otherwise = result
+  where
+    result@(p', g') = randomPrime b g
