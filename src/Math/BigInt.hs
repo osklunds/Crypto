@@ -1,13 +1,13 @@
 
--- | Types for integers with Arbitrary instances giving
+-- Types for integers with Arbitrary instances giving
 -- larger numbers than Int and Integer gives.
 
 {-# LANGUAGE FlexibleInstances #-}
 
 module Math.BigInt
-( BigInt1000
-, BigInt100000
-, BigInt10000000
+( BigInt3
+, BigInt5
+, BigInt7
 )
 where
 
@@ -15,30 +15,31 @@ import Test.QuickCheck
 import System.Random
 import Data.Bits
 
--- Used to indicate size of arbitrary values.
-data L1000
-data L100000
-data L10000000
+-- Used to indicate size of arbitrary values. The number
+-- indicates how many digits the numbers will get.
+data L3
+data L5
+data L7
 
 data BigInt a = BigInt Integer
                deriving Show
 
-arbitrarySize :: Integer -> Gen (BigInt a)
-arbitrarySize n = choose (-n,n) >>= return . BigInt
+instance Arbitrary (BigInt L3) where
+  arbitrary = arbitrarySized (10^3)
 
-instance Arbitrary (BigInt L1000) where
-  arbitrary = arbitrarySize 1000
+instance Arbitrary (BigInt L5) where
+  arbitrary = arbitrarySized (10^5)
 
-instance Arbitrary (BigInt L100000) where
-  arbitrary = arbitrarySize 100000
+instance Arbitrary (BigInt L7) where
+  arbitrary = arbitrarySized (10^7)
 
-instance Arbitrary (BigInt L10000000) where
-  arbitrary = arbitrarySize 10000000
+arbitrarySized :: Integer -> Gen (BigInt a)
+arbitrarySized n = choose (-n,n) >>= return . BigInt
 
--- | Integer with Arbitrary instance giving between -1000 and 1000.
-type BigInt1000 = BigInt L1000
-type BigInt100000 = BigInt L100000
-type BigInt10000000 = BigInt L10000000
+
+type BigInt3 = BigInt L3
+type BigInt5 = BigInt L5
+type BigInt7 = BigInt L7
 
 unwrap :: BigInt a -> Integer
 unwrap (BigInt i) = i
@@ -89,19 +90,19 @@ instance Random (BigInt a) where
 
 instance Bits (BigInt a) where
   (BigInt a) `shiftL` i = BigInt (a `shiftL` i)
-  (BigInt a) .|. (BigInt b) = BigInt (a .|. b)
+  (.|.) = liftBinInt (.|.)
   bit i = BigInt (bit i)
 
-  (.&.) = undefined
-  xor = undefined
-  complement = undefined
-  shift = undefined
-  rotate = undefined
-  bitSize = undefined
+  (.&.)        = undefined
+  xor          = undefined
+  complement   = undefined
+  shift        = undefined
+  rotate       = undefined
+  bitSize      = undefined
   bitSizeMaybe = undefined
-  isSigned = undefined
-  testBit = undefined
-  popCount = undefined
+  isSigned     = undefined
+  testBit      = undefined
+  popCount     = undefined
 
 
 
