@@ -12,9 +12,9 @@ import Prelude hiding (gcd)
 import Test.QuickCheck
 import Math.BigInt
 
--- | divides d n tests if d divides n.
+-- divides d n tests if d divides n.
 divides :: Integral a => a -> a -> Bool
-a `divides` b = b `mod` a == 0
+d `divides` n = d `mod` n == 0
 
 gcd :: Integral a => a -> a -> a
 gcd a b
@@ -44,7 +44,7 @@ eea a b
     (d,s',t') = eea b r
     (s,t)     = (t',s'-q*t')
 
-prop_eea :: BigInt10000000 -> BigInt10000000 -> Bool
+prop_eea :: BigInt7 -> BigInt7 -> Bool
 prop_eea a b = gcd a b == d && a*s+b*t == d && d >= 0
   where
     (d,s,t) = eea a b
@@ -57,7 +57,7 @@ a `invMod` m
   where
     (d,s,_) = eea a m
 
-prop_invMod :: BigInt10000000 -> BigInt10000000 -> Property
+prop_invMod :: BigInt7 -> BigInt7 -> Property
 prop_invMod a m = a > 0 && m > 2 && a `coprime` m ==>
   i > 0 && i < m && a*i `mod` m == 1
   where
