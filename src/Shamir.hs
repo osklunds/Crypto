@@ -18,6 +18,51 @@ import Math.Gen
 import Math.Prime
 import Tools
 
+-- Couples a share si to the ID pi.
+data ShareIdPair a = ShareIdPair a a
+                   deriving (Eq)
+
+instance Show a => Show (ShareIdPair a) where
+  show (ShareIdPair s p) = "<share=" ++ 
+                            show s ++ 
+                            ",id=" ++ 
+                            show p ++ 
+                            ">"
+
+-- Parameters n (number of parties), t (threshold) and q (modulo).
+data ShamirParams a = ShamirParams a a a
+                    deriving (Eq)
+
+instance Show a => Show (ShamirParams a) where
+  show (ShamirParams n t q) = "ShamirParams n=" ++ 
+                              show n ++ 
+                              " t=" ++ 
+                              show t ++ 
+                              " q=" ++ 
+                              show q
+
+validParams :: (Integral a, Random a) => ShamirParams a -> Bool
+validParams (ShamirParams n t q) = t >= 1
+                                && n > t
+                                && q >= 2
+                                && prime q
+                                && q > n
+-- In the beta function, inverses of numbers up to n will be
+-- calculated mod q. So if q is a prime > n all such inverses will exist.
+
+
+share :: (Integral a, Random a, MonadRandom m) => 
+  a -> ShamirParams a -> m [ShareIdPair a]
+share s p@(ShamirParams n t q)
+  | s /= s `mod` q      = error "s not in Zq"
+  | not (validParams p) = error "Invalid parameters"
+  | otherwise = do
+      infCoeffs   <- getRandomRs (0,q-1)
+      let coeffs  =  s:(take t infCoeffs)
+          polyFun =  poly coeffs q
+      return [ShareIdPair (polyFun pi) pi | pi <- [1..n]]
+
+
 -- poly [c0..cm] q x computes the value of the polynomial
 -- function with coefficients c0 to cm, at x, modulo q.
 poly :: Integral a => [a] -> a -> a -> a
@@ -32,53 +77,6 @@ prop_poly cs q x = q >= 2 ==> sum1 == sum2
   where
     sum1  = poly cs q x
     sum2 = (sum $ zipWith (\c e -> c*x^e) cs [0..]) `mod` q
-
-
--- | Couples a share si to the ID pi.
-data ShareIdPair a = ShareIdPair a a
-                   deriving (Eq)
-
-instance Show a => Show (ShareIdPair a) where
-  show (ShareIdPair s p) = "<share=" ++ 
-                            show s ++ 
-                            ",id=" ++ 
-                            show p ++ 
-                            ">"
-
--- | Parameters n (number of parties), t (threshold) and q (modulo).
-data ShamirParams a = ShamirParams a a a
-                    deriving (Eq)
-
-instance Show a => Show (ShamirParams a) where
-  show (ShamirParams n t q) = "ShamirParams n=" ++ 
-                              show n ++ 
-                              " t=" ++ 
-                              show t ++ 
-                              " q=" ++ 
-                              show q
-
--- In the beta function, inverses of numbers
--- at most n will be calculated mod q. So if q is prime > n
--- such inverses will exist.
-validParams :: (Integral a, Random a) => 
-  ShamirParams a -> Bool
-validParams (ShamirParams n t q) = t >= 1
-                                && n > t
-                                && q >= 2
-                                && prime q
-                                && n < q
-
-share :: (Integral a, Random a, MonadRandom m) => 
-  a -> ShamirParams a -> m [ShareIdPair a]
-share s p@(ShamirParams n t q)
-  | s /= s `mod` q      = error "s not in Zq"
-  | not (validParams p) = error "Invalid parameters"
-  | otherwise = do
-      infCoeffs   <- getRandomRs (0,q-1)
-      let coeffs  =  s:(take t infCoeffs)
-          polyFun =  poly coeffs q
-      return [ShareIdPair (polyFun pi) pi | pi <- [1..n]]
-
 
 -- beta js q i calculates beta i, when parties js are 
 -- involved, modulo q.
