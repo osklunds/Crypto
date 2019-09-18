@@ -1,6 +1,4 @@
 
--- Textbook RSA.
-
 module RSA
 ( PubKey
 , PriKey

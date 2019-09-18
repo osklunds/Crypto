@@ -1,6 +1,4 @@
 
--- | Shamir's Secret Sharing.
-
 module Shamir
 ( ShareIdPair(..)
 , ShamirParams(..)
@@ -13,15 +11,12 @@ where
 import Prelude hiding ((!!), length, take)
 import System.Random
 import Test.QuickCheck
-import Control.Monad.Random.Class
-import Control.Monad.Random.Lazy
 
 import Math.Divisibility
 import Math.BigInt
 import Math.Gen
 import Math.Prime
 import Tools
-import Tools.MonadRandom
 
 -- poly [c0..cm] q x computes the value of the polynomial
 -- function with coefficients c0 to cm, at x, modulo q.
@@ -29,9 +24,9 @@ poly :: Integral a => [a] -> a -> a -> a
 poly []     _ _ = 0
 poly (c:cs) q x = (c + x*poly cs q x) `mod` q
 
-prop_poly :: [BigInt10000000] -> 
-             BigInt10000000 ->                              
-             BigInt10000000 -> 
+prop_poly :: [BigInt7] -> 
+             BigInt7 ->                              
+             BigInt7 -> 
              Property
 prop_poly cs q x = q >= 2 ==> sum1 == sum2
   where
@@ -93,9 +88,9 @@ beta js q i = product [j * (j-i) `invMod` q | j <- js, j /= i] `mod` q
 -- prop_beta g n ne q, generates a degree n polynomial
 -- and tests it with n+ne beta values, modulo q.
 prop_beta :: StdGen -> 
-             BigInt100000 -> 
-             BigInt100000 -> 
-             BigInt100000 -> 
+             BigInt5 -> 
+             BigInt5 -> 
+             BigInt5 -> 
              Property
 prop_beta g n ne q = n' >= 1 ==> s == s'
   where
@@ -140,8 +135,8 @@ instance (Integral a, Random a, Arbitrary a) =>
       return $ ShamirParams n' t' q'
 
 prop_shareRecover :: StdGen -> 
-                     BigInt100000 -> 
-                     ShamirParams BigInt100000 ->
+                     BigInt5 -> 
+                     ShamirParams BigInt5 ->
                      Bool
 prop_shareRecover g s p@(ShamirParams n t q) = s_rec == s'
   where
