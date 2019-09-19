@@ -16,6 +16,7 @@ import Math.Divisibility
 import Math.BigInt
 import Math.Gen
 import Math.Prime
+import Math.NumClass
 import Tools
 
 -- Couples a share si to the ID pi.
@@ -41,7 +42,7 @@ instance Show a => Show (ShamirParams a) where
                               " q=" ++ 
                               show q
 
-validParams :: (Integral a, Random a) => ShamirParams a -> Bool
+validParams :: NumClass a => ShamirParams a -> Bool
 validParams (ShamirParams n t q) = t >= 1
                                 && n > t
                                 && q >= 2
@@ -51,17 +52,22 @@ validParams (ShamirParams n t q) = t >= 1
 -- calculated mod q. So if q is a prime > n all such inverses will exist.
 
 
-share :: (Integral a, Random a, MonadRandom m) => 
-  a -> ShamirParams a -> m [ShareIdPair a]
-share s p@(ShamirParams n t q)
+share :: (NumClass a, RandomGen g) => 
+  a -> ShamirParams a -> g -> ([ShareIdPair a], g)
+share s p@(ShamirParams _ _ q) g
   | s /= s `mod` q      = error "s not in Zq"
   | not (validParams p) = error "Invalid parameters"
-  | otherwise = do
-      infCoeffs   <- getRandomRs (0,q-1)
-      let coeffs  =  s:(take t infCoeffs)
-          polyFun =  poly coeffs q
-      return [ShareIdPair (polyFun pi) pi | pi <- [1..n]]
+  | otherwise           = shareInner s p g
 
+shareInner :: (NumClass a, RandomGen g) => 
+  a -> ShamirParams a -> g -> ([ShareIdPair a], g)
+shareInner s (ShamirParams n t q) g = (zipWith ShareIdPair sis pis, g'')
+  where
+    sis      = map polyFun pis
+    polyFun  = poly (s:coeffs) q
+    coeffs   = take t $ randomRs (0,q-1) g'
+    (g',g'') = split g
+    pis      = [1..n]
 
 -- poly [c0..cm] q x computes the value of the polynomial
 -- function with coefficients c0 to cm, at x, modulo q.
@@ -69,14 +75,15 @@ poly :: Integral a => [a] -> a -> a -> a
 poly []     _ _ = 0
 poly (c:cs) q x = (c + x*poly cs q x) `mod` q
 
-prop_poly :: [BigInt7] -> 
-             BigInt7 ->                              
-             BigInt7 -> 
-             Property
+prop_poly :: [BigInt7] -> BigInt7 -> BigInt7 -> Property
 prop_poly cs q x = q >= 2 ==> sum1 == sum2
   where
     sum1  = poly cs q x
     sum2 = (sum $ zipWith (\c e -> c*x^e) cs [0..]) `mod` q
+
+
+
+
 
 -- beta js q i calculates beta i, when parties js are 
 -- involved, modulo q.
