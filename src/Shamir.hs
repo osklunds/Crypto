@@ -82,8 +82,13 @@ prop_poly cs q x = q >= 2 ==> sum1 == sum2
     sum2 = (sum $ zipWith (\c e -> c*x^e) cs [0..]) `mod` q
 
 
-
-
+recover :: NumClass a => [ShareIdPair a] -> ShamirParams a -> a
+recover pairs (ShamirParams n t q) = sum prods `mod` q
+  where
+    prods = zipWith (*) bi_s si_s
+    bi_s  = map (beta pi_s q) pi_s
+    pi_s  = map (\(ShareIdPair _ pi) -> pi) pairs
+    si_s  = map (\(ShareIdPair si _) -> si) pairs
 
 -- beta js q i calculates beta i, when parties js are 
 -- involved, modulo q.
@@ -92,11 +97,7 @@ beta js q i = product [j * (j-i) `invMod` q | j <- js, j /= i] `mod` q
 
 -- prop_beta g n ne q, generates a degree n polynomial
 -- and tests it with n+ne beta values, modulo q.
-prop_beta :: StdGen -> 
-             BigInt5 -> 
-             BigInt5 -> 
-             BigInt5 -> 
-             Property
+prop_beta :: StdGen -> BigInt5 -> BigInt5 -> BigInt5 -> Property
 prop_beta g n ne q = n' >= 1 ==> s == s'
   where
     n'    = n  `mod` 40 -- Performance reason
@@ -104,48 +105,28 @@ prop_beta g n ne q = n' >= 1 ==> s == s'
     q'    = nextPrime (max q (n'+ne'+1))
     range = (0,q'-1)
 
-    -- cs:    n' coefficients to the polynomial
-    -- xVals: n'+ne' unique random x values
-    (cs, xVals) = fst $ runRand f g
-      where
-        f = do
-          cs    <- getRandomRs  (0,q'-1)
-          xVals <- getRandomRsU (0,q'-1) (n'+ne')
-          return (take n' cs, xVals)
-    s = head cs
-    
+    cs       = take n'       $ randomRs range g'
+    xVals    = take (n'+ne') $ randomRs range g''
+    (g',g'') = split g
+    s        = head cs
+
     yVals = map (poly cs    q') xVals
     bVals = map (beta xVals q') xVals
-
     -- polynomial at 0 using beta values
-    s' = (sum $ zipWith (*) bVals yVals) `mod` q'
+    s'    = (sum $ zipWith (*) bVals yVals) `mod` q
 
-
-recover :: Integral a => [ShareIdPair a] -> ShamirParams a -> a
-recover pairs (ShamirParams n t q) = sum prods `mod` q
-  where
-    si_s  = map (\(ShareIdPair si _) -> si) pairs
-    pi_s  = map (\(ShareIdPair _ pi) -> pi) pairs
-    bi_s  = map (beta pi_s q) pi_s
-    prods = zipWith (*) bi_s si_s
-
-
-instance (Integral a, Random a, Arbitrary a) => 
-  Arbitrary (ShamirParams a) where
-    arbitrary = do
-      (n,t,q) <- arbitrary
-      let n' = n `mod` 40 + 2           -- Performance
-          t' = (t `mod` (n'-1)) + 1     -- Performance
-          q' = nextPrime (max q n' + 1) -- Correctness
-      return $ ShamirParams n' t' q'
-
+{-
 prop_shareRecover :: StdGen -> 
                      BigInt5 -> 
                      ShamirParams BigInt5 ->
                      Bool
-prop_shareRecover g s p@(ShamirParams n t q) = s_rec == s'
+prop_shareRecover g s p@(ShamirParams n t _) = s_rec == s'
   where
     s' = s `mod` q -- Correctness
+    allPairs = share s' p
+    numParties = 
+
+
     
     (allPairs, pi_s) = fst $ runRand f g
       where
@@ -157,3 +138,13 @@ prop_shareRecover g s p@(ShamirParams n t q) = s_rec == s'
 
     pairs = [allPairs !! (pi-1) | pi <- pi_s]
     s_rec = recover pairs p
+
+instance (NumClass a, Arbitrary a) => 
+  Arbitrary (ShamirParams a) where
+    arbitrary = do
+      (n,t,q) <- arbitrary
+      let n' = n `mod` 40 + 2           -- Performance
+          t' = (t `mod` (n'-1)) + 1     -- Performance
+          q' = nextPrime (max q n' + 1) -- Correctness
+      return $ ShamirParams n' t' q'
+-}
