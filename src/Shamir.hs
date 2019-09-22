@@ -95,25 +95,55 @@ recover pairs (ShamirParams n t q) = sum prods `mod` q
 beta :: Integral a => [a] -> a -> a -> a
 beta js q i = product [j * (j-i) `invMod` q | j <- js, j /= i] `mod` q
 
--- prop_beta g n ne q, generates a degree n polynomial
--- and tests it with n+ne beta values, modulo q.
+-- prop_beta g t te q, generates a degree t polynomial
+-- and tests it with t+te beta values, modulo q.
 prop_beta :: StdGen -> BigInt5 -> BigInt5 -> BigInt5 -> Property
-prop_beta g n ne q = n' >= 1 ==> s == s'
+prop_beta g t te q = t' >= 1 ==> p0 == p0'
   where
-    n'    = n  `mod` 40 -- Performance reason
-    ne'   = ne `mod` 20 -- Performance reason
-    q'    = nextPrime (max q (n'+ne'+1))
-    range = (0,q'-1)
-
-    cs       = take n'       $ randomRs range g'
-    xVals    = take (n'+ne') $ randomRs range g''
-    (g',g'') = split g
-    s        = head cs
-
-    yVals = map (poly cs    q') xVals
-    bVals = map (beta xVals q') xVals
+    (t', te', q')       = prop_beta_params t te q
+    (xVals, coeffs, p0) = prop_beta_poly (t'+1+te') (t'+1) q' g
+    
+    yVals = map (poly coeffs q') xVals
+    bVals = map (beta xVals  q') xVals
     -- polynomial at 0 using beta values
-    s'    = (sum $ zipWith (*) bVals yVals) `mod` q
+    p0'   = (sum $ zipWith (multMod q') bVals yVals) `mod` q'
+
+prop_beta_params :: NumClass a => a -> a -> a -> (a, a, a)
+prop_beta_params t te q = (t', te', q')
+  where
+    t'  = t  `mod` 40 -- Performance reasons
+    te' = te `mod` 40 -- Performance reasons
+    q'  = nextPrime (max q (t'+te'+2))
+    -- The modulo must be a prime. And all x values must be coprime
+    -- with the modulo, and we will grab x values from 1 to t'+1+te'
+    -- which means we must have at least t'+te'+2 x values because
+    -- they must be unique.
+
+prop_beta_poly :: (NumClass a, RandomGen g) => 
+  a -> a -> a -> g -> ([a], [a], a)
+prop_beta_poly numX numC q g = (xVals, coeffs, p0)
+  where
+    (xVals, g') = randomRUs numX (1, q-1) g
+    coeffs      = take numC $ randomRs (0, q-1) g'
+    p0          = head coeffs
+
+randomRUs :: (NumClass a, RandomGen g) => a -> (a, a) -> g -> ([a], g)
+randomRUs 0 _     g = ([], g)
+randomRUs n range g = (this:rest, g'')
+  where
+    (rest, g')  = randomRUs (n-1) range g
+    (this, g'') = randomRNotIn rest range g'
+
+randomRNotIn :: (NumClass a, RandomGen g) => [a] -> (a, a) -> g -> (a, g)
+randomRNotIn rs range g
+  | r `elem` rs = randomRNotIn rs range g'
+  | otherwise   = (r, g')
+  where
+    (r, g') = randomR range g
+
+multMod :: Integral a => a -> a -> a -> a
+multMod q a b = a*b `mod` q
+
 
 {-
 prop_shareRecover :: StdGen -> 
