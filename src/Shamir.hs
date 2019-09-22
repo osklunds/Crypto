@@ -100,16 +100,21 @@ beta js q i = product [j * (j-i) `invMod` q | j <- js, j /= i] `mod` q
 prop_beta :: StdGen -> BigInt5 -> BigInt5 -> BigInt5 -> Property
 prop_beta g t te q = t' >= 1 ==> p0 == p0'
   where
-    (t', te', q')       = prop_beta_params t te q
-    (xVals, coeffs, p0) = prop_beta_poly (t'+1+te') (t'+1) q' g
+    (t', te', q')       = beta_params t te q
+    (xVals, coeffs, p0) = beta_poly (t'+1+te') (t'+1) q' g
     
     yVals = map (poly coeffs q') xVals
     bVals = map (beta xVals  q') xVals
     -- polynomial at 0 using beta values
     p0'   = (sum $ zipWith (multMod q') bVals yVals) `mod` q'
 
-prop_beta_params :: NumClass a => a -> a -> a -> (a, a, a)
-prop_beta_params t te q = (t', te', q')
+instance Arbitrary StdGen where
+  arbitrary = do
+    seed <- arbitrary
+    return $ mkStdGen seed
+
+beta_params :: NumClass a => a -> a -> a -> (a, a, a)
+beta_params t te q = (t', te', q')
   where
     t'  = t  `mod` 40 -- Performance reasons
     te' = te `mod` 40 -- Performance reasons
@@ -119,9 +124,9 @@ prop_beta_params t te q = (t', te', q')
     -- which means we must have at least t'+te'+2 x values because
     -- they must be unique.
 
-prop_beta_poly :: (NumClass a, RandomGen g) => 
+beta_poly :: (NumClass a, RandomGen g) => 
   a -> a -> a -> g -> ([a], [a], a)
-prop_beta_poly numX numC q g = (xVals, coeffs, p0)
+beta_poly numX numC q g = (xVals, coeffs, p0)
   where
     (xVals, g') = randomRUs numX (1, q-1) g
     coeffs      = take numC $ randomRs (0, q-1) g'
@@ -145,26 +150,31 @@ multMod :: Integral a => a -> a -> a -> a
 multMod q a b = a*b `mod` q
 
 
-prop_shareRecover :: StdGen -> 
-                     BigInt5 -> 
-                     ShamirParams BigInt5 ->
-                     Bool
+prop_shareRecover :: StdGen -> BigInt5 -> ShamirParams BigInt5 -> Bool
 prop_shareRecover g s p@(ShamirParams n t q) = s_rec == s'
   where
-    s' = s `mod` q -- Correctness
-    (allPairs, g') = share s' p g
-
-    (numParties, g'') = randomR (t+1, n) g'
-    (pi_s, _)        = randomRUs numParties (1,n) g''
-
+    (s', allPairs, g') = shareRecover_secretAndPairs s p g
+    pi_s               = shareRecover_parties p g
     pairs = [allPairs !! (pi-1) | pi <- pi_s]
     s_rec = recover pairs p
 
-instance (NumClass a, Arbitrary a) => 
-  Arbitrary (ShamirParams a) where
+instance (NumClass a, Arbitrary a) => Arbitrary (ShamirParams a) where
     arbitrary = do
       (n,t,q) <- arbitrary
-      let n' = n `mod` 40 + 2           -- Performance
-          t' = (t `mod` (n'-1)) + 1     -- Performance
-          q' = nextPrime (max q n' + 1) -- Correctness
+      let n' =  n `mod` 40      + 2      -- Performance
+          t' = (t `mod` (n'-1)) + 1      -- Performance
+          q' = nextPrime  $ max q (n'+1) -- Correctness
       return $ ShamirParams n' t' q'
+
+shareRecover_secretAndPairs :: (NumClass a, RandomGen g) =>
+  a -> ShamirParams a -> g -> (a, [ShareIdPair a], g)
+shareRecover_secretAndPairs s p@(ShamirParams _ _ q) g = (s', pairs, g')
+  where
+    s' = s `mod` q
+    (pairs, g') = share s' p g
+
+shareRecover_parties :: (NumClass a, RandomGen g) => ShamirParams a -> g -> [a]
+shareRecover_parties (ShamirParams n t _) g = pi_s
+  where
+    (numParties, g') = randomR (t+1, n) g
+    (pi_s, _)        = randomRUs numParties (1,n) g'

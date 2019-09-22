@@ -38,8 +38,3 @@ toHex n = showHex n ""
 []     !! _ = error "Out of range"
 (x:_)  !! 0 = x
 (_:xs) !! n = xs !! (n-1)
-
-instance Arbitrary StdGen where
-  arbitrary = do
-    seed <- arbitrary
-    return $ mkStdGen seed
