@@ -145,26 +145,17 @@ multMod :: Integral a => a -> a -> a -> a
 multMod q a b = a*b `mod` q
 
 
-{-
 prop_shareRecover :: StdGen -> 
                      BigInt5 -> 
                      ShamirParams BigInt5 ->
                      Bool
-prop_shareRecover g s p@(ShamirParams n t _) = s_rec == s'
+prop_shareRecover g s p@(ShamirParams n t q) = s_rec == s'
   where
     s' = s `mod` q -- Correctness
-    allPairs = share s' p
-    numParties = 
+    (allPairs, g') = share s' p g
 
-
-    
-    (allPairs, pi_s) = fst $ runRand f g
-      where
-        f = do
-          allPairs   <- share s' p
-          numParties <- getRandomR   (t+1,n)
-          pi_s       <- getRandomRsU (1,n) numParties
-          return (allPairs, pi_s)
+    (numParties, g'') = randomR (t+1, n) g'
+    (pi_s, _)        = randomRUs numParties (1,n) g''
 
     pairs = [allPairs !! (pi-1) | pi <- pi_s]
     s_rec = recover pairs p
@@ -177,4 +168,3 @@ instance (NumClass a, Arbitrary a) =>
           t' = (t `mod` (n'-1)) + 1     -- Performance
           q' = nextPrime (max q n' + 1) -- Correctness
       return $ ShamirParams n' t' q'
--}
