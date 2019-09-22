@@ -7,23 +7,20 @@ This is a short example deonstrating my implementation of Shamir's Secret Sharin
 > where
 
 > import System.Random
-> import Control.Monad.Random.Class
-> import Control.Monad.Random.Lazy
 > import Shamir
 
  Alice has a secret she wants to share.
 
 > aliceSecret = 7
 
-She wants to share to to 4 of her friends and want the threshold to be 2. She wants to work modulo 101.
+She wants to share it to 4 of her friends and want the threshold to be 2, meaning up to 2 traitors are tolerated. She wants to work modulo 101.
 
 > params = ShamirParams 4 2 101
 
 She now calculates the shares.
 
 > shares :: [ShareIdPair Integer]
-> shares = fst $ runRand (share aliceSecret params) $
->          mkStdGen 1337
+> shares = fst $ share aliceSecret params $ mkStdGen 1337
 
 She gives share 1 to Bob, share 2 to Charlie, share 3 to Dave and share 4 to Eve
 
