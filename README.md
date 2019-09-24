@@ -9,7 +9,7 @@ Implementations of cryptographic algorithms in Haskell. So far I have implemente
 
 ## How to run
 
-Change directory to `src/` and type `ghci`. Now load the module you want to run. Some modules require the package `MonadRandom`, which you can install with `cabal install MonadRandom`.
+Change directory to `src/` and type `ghci`. Now load the module you want to run.
 
 ## Modules overview
 
@@ -19,23 +19,20 @@ Change directory to `src/` and type `ghci`. Now load the module you want to run.
 
 The `Math` module provides discrete mathematics functions used by the cryptographic modules.
 
-- `Divisibility` Divisibility test, Extended Euclidean Algorithm and co.
+- `BigInt` Integer types with `Arbitrary` instances giving large numbers. Used for testing.
+- `Divisibility` Divisibility test, Extended Euclidean Algorithm and related.
+- `Gen` Generation of coprimes and primes.
+- `NumClass` A type class used as a shorthand for the multiple type classes required in many functions.
 - `PowerModulo` Modular exponentiation done efficiently.
 - `Prime` Primality testing using the Miller-Rabin test.
-- `Gen` Generation of coprimes and primes.
-- `BigInt` Data types with `Arbitrary` instances giving larger numbers. Used for testing-purposes.
 
 ### RSA
 
-Implementation of textbook RSA.
-
-- `Example` Example usage of the RSA library.
+Implementation of textbook RSA. Generation of keys, encryption, decryption, signing and verification. Check `RSA.Example` for example usage.
 
 ### Shamir
 
-Implementation of Shamir's Secret Sharing.
-
-- `Example` Example usage of the secret sharing scheme.
+Implementation of Shamir's Secret Sharing. Check `Shamir.Example` for example usage, where Alice shares a secret with her friends.
 
 ### SHA256
 
@@ -51,7 +48,4 @@ Implementation of SHA256. The terminology follows closely to that of the [Wikipe
 
 ### Tools
 
-Helper functions that are unrelated to cryptography and not specific to the project itself. For example, the `!!` function revamped to work with any `Integral` index and not just `Int`.
-
-- `MonadRandom` Helper functions for the `MonadRandom` typeclass.
-
+Helper functions that are unrelated to cryptography and not specific to the project itself, but that are still useful here. For example, the `!!` function revamped to work with any `Integral` index and not just `Int`.
