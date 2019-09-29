@@ -101,8 +101,8 @@ beta js q i = product [j * (j-i) `invMod` q | j <- js, j /= i] `mod` q
 prop_beta :: StdGen -> BigInt5 -> BigInt5 -> BigInt5 -> Property
 prop_beta g t te q = t' >= 1 ==> p0 == p0'
   where
-    (t', te', q')       = beta_params t te q
-    (xVals, coeffs, p0) = beta_poly (t'+1+te') (t'+1) q' g
+    (t', te', q')       = propBetaParams t te q
+    (xVals, coeffs, p0) = propBetaPolynom (t'+1+te') (t'+1) q' g
     
     yVals = map (poly coeffs q') xVals
     bVals = map (beta xVals  q') xVals
@@ -114,8 +114,8 @@ instance Arbitrary StdGen where
     seed <- arbitrary
     return $ mkStdGen seed
 
-beta_params :: NumClass a => a -> a -> a -> (a, a, a)
-beta_params t te q = (t', te', q')
+propBetaParams :: NumClass a => a -> a -> a -> (a, a, a)
+propBetaParams t te q = (t', te', q')
   where
     t'  = t  `mod` 40 -- Performance reasons
     te' = te `mod` 40 -- Performance reasons
@@ -125,9 +125,9 @@ beta_params t te q = (t', te', q')
     -- which means we must have at least t'+te'+2 x values because
     -- they must be unique.
 
-beta_poly :: (NumClass a, RandomGen g) => 
+propBetaPolynom :: (NumClass a, RandomGen g) => 
   a -> a -> a -> g -> ([a], [a], a)
-beta_poly numX numC q g = (xVals, coeffs, p0)
+propBetaPolynom numX numC q g = (xVals, coeffs, p0)
   where
     (xVals, g') = randomRUs numX (1, q-1) g
     coeffs      = take numC $ randomRs (0, q-1) g'
@@ -140,8 +140,8 @@ multMod q a b = a*b `mod` q
 prop_shareRecover :: StdGen -> BigInt5 -> ShamirParams BigInt5 -> Bool
 prop_shareRecover g s p@(ShamirParams n t q) = s_rec == s'
   where
-    (s', allPairs, g') = shareRecover_secretAndPairs s p g
-    pi_s               = shareRecover_parties p g
+    (s', allPairs, g') = propShareRecoverSecretAndPairs s p g
+    pi_s               = propShareRecoverParties p g
     pairs = [allPairs !! (pi-1) | pi <- pi_s]
     s_rec = recover pairs p
 
@@ -153,15 +153,17 @@ instance (NumClass a, Arbitrary a) => Arbitrary (ShamirParams a) where
           q' = nextPrime  $ max q (n'+1) -- Correctness
       return $ ShamirParams n' t' q'
 
-shareRecover_secretAndPairs :: (NumClass a, RandomGen g) =>
+propShareRecoverSecretAndPairs :: (NumClass a, RandomGen g) =>
   a -> ShamirParams a -> g -> (a, [ShareIdPair a], g)
-shareRecover_secretAndPairs s p@(ShamirParams _ _ q) g = (s', pairs, g')
+propShareRecoverSecretAndPairs s p@(ShamirParams _ _ q) g = 
+  (s', pairs, g')
   where
     s' = s `mod` q
     (pairs, g') = share s' p g
 
-shareRecover_parties :: (NumClass a, RandomGen g) => ShamirParams a -> g -> [a]
-shareRecover_parties (ShamirParams n t _) g = pi_s
+propShareRecoverParties :: (NumClass a, RandomGen g) => 
+  ShamirParams a -> g -> [a]
+propShareRecoverParties (ShamirParams n t _) g = pi_s
   where
     (numParties, g') = randomR (t+1, n) g
     (pi_s, _)        = randomRUs numParties (1,n) g'
