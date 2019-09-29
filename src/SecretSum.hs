@@ -7,11 +7,14 @@ module SecretSum
 )
 where
 
-import Prelude hiding (length)
+import Prelude hiding (length, take)
+import Data.List hiding (length, take)
 import System.Random
+import Test.QuickCheck
 
 import Shamir
 import Math.NumClass
+import Math.BigInt
 import Tools
 
 -- First is val, second is party
@@ -67,3 +70,24 @@ calculateSum shares (ShamirParams _ _ q) = summed
     bis = map (beta pis q) pis
     pis = map (\(Phase2Share _ pi) -> pi) shares
     sis = map (\(Phase2Share si _) -> si) shares
+
+prop_calculateSum :: StdGen -> ShamirParams BigInt3 -> BigInt3 -> Bool
+prop_calculateSum g p@(ShamirParams n t q) n' = sumSecret == sumDirect
+  where
+    (g',g'') = split g
+    inputs = take n $ randomRs (0,q-1) g'
+    (phase1SharesCreatedPerParty, _) = createPhase1SharesFromInputs inputs p g''
+    phase1SharesReceivedPerParty = transpose phase1SharesCreatedPerParty
+    phase2SharesPerParty = map (\shares -> createPhase2Share shares p) phase1SharesReceivedPerParty
+    sumSecret = calculateSum phase2SharesPerParty p
+    sumDirect = sum inputs `mod` q
+
+
+
+createPhase1SharesFromInputs :: (NumClass a, RandomGen g) =>
+  [a] -> ShamirParams a -> g -> ([[Phase1Share a]], g)
+createPhase1SharesFromInputs []     _ g = ([], g)
+createPhase1SharesFromInputs (i:is) p g = (shares:rest, g'')
+  where
+    (shares, g') = createPhase1Shares i p g
+    (rest, g'')  = createPhase1SharesFromInputs is p g'
