@@ -2,6 +2,7 @@
 module SecretSum
 ( Phase1Share(..)
 , createPhase1Shares
+, Phase2Share(..)
 , createPhase2Share
 , calculateSum
 )
@@ -17,7 +18,7 @@ import Math.NumClass
 import Math.BigInt
 import Tools
 
--- First is val, second is party
+-- Couples a phase 1 share to the party id which created it.
 data Phase1Share a = Phase1Share a a
 
 instance Show a => Show (Phase1Share a) where
@@ -26,16 +27,16 @@ instance Show a => Show (Phase1Share a) where
 
 createPhase1Shares :: (NumClass a, RandomGen g) => 
   a -> ShamirParams a -> g -> ([Phase1Share a], g)
-createPhase1Shares x p g = (phase1Shares, g')
+createPhase1Shares i p g = (phase1Shares, g')
   where
-    (shamirShares, g') = share x p g
+    (shamirShares, g') = share i p g
     phase1Shares = map shamirShareToPhase1Share shamirShares
 
 shamirShareToPhase1Share :: ShareIdPair a -> Phase1Share a
 shamirShareToPhase1Share (ShareIdPair s p) = Phase1Share s p
 
 
--- First is val, second is party
+-- Couples a phase 2 share to the party id which created it.
 data Phase2Share a = Phase2Share a a
 
 instance Show a => Show (Phase2Share a) where
