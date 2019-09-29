@@ -43,9 +43,9 @@ instance Show a => Show (Phase2Share a) where
                            ", Party = " ++ show p ++ ">"
 
 
-createPhase2Share :: NumClass a => [Phase1Share a] -> ShamirParams a
+createPhase2Share :: NumClass a => ShamirParams a -> [Phase1Share a]
   -> Phase2Share a
-createPhase2Share shares (ShamirParams n _ q)
+createPhase2Share (ShamirParams n _ q) shares
   | length shares /= n = error "Need shares from all parties"
   | otherwise          = Phase2Share s p
   where
@@ -63,6 +63,7 @@ partyFromShares ((Phase1Share _ p):shares)
   where
     p' = partyFromShares shares
 
+
 calculateSum :: NumClass a => [Phase2Share a] -> ShamirParams a -> a
 calculateSum shares (ShamirParams _ _ q) = summed
   where
@@ -72,21 +73,34 @@ calculateSum shares (ShamirParams _ _ q) = summed
     sis = map (\(Phase2Share si _) -> si) shares
 
 prop_calculateSum :: StdGen -> ShamirParams BigInt3 -> Bool
-prop_calculateSum g p@(ShamirParams n t q) = sumSecret == sumDirect
+prop_calculateSum g p@(ShamirParams n t q) = sumDirect == sumSecret
   where
-    (g1,g2) = split g
-    inputs = take n $ randomRs (0,q-1) g1
-    (phase1SharesCreatedPerParty, g3) = createPhase1SharesFromInputs inputs p g2
-    phase1SharesReceivedPerParty = transpose phase1SharesCreatedPerParty
-    phase2SharesPerParty = map (\shares -> createPhase2Share shares p) phase1SharesReceivedPerParty
-    (numParticipants, g4) = randomR (t+1,n) g3
-    (finalParties, _) = randomRUs numParticipants (0,n-1) g4
-    finalShares = [phase2SharesPerParty !! pi | pi <- finalParties]
-    sumSecret = calculateSum finalShares p
+    (inputs, g') = randomInputs n q g
     sumDirect = sum inputs `mod` q
 
+    phase2Shares = phase2SharesFromInputsToUse inputs p g'
+    sumSecret = calculateSum phase2Shares p
 
+randomInputs :: (NumClass a, RandomGen g) => a -> a -> g -> ([a], g)
+randomInputs n q g = (take n $ randomRs (0,q-1) g', g'')
+  where
+    (g',g'') = split g
 
+phase2SharesFromInputsToUse :: (NumClass a, RandomGen g) =>
+  [a] -> ShamirParams a -> g -> [Phase2Share a]
+phase2SharesFromInputsToUse inputs p@(ShamirParams n t _) g = shares
+  where
+    (phase2Shares, g') = phase2SharesFromInputs inputs p g
+    parties = randomParties (0,n-1) (t+1,n) g'
+    shares = [phase2Shares !! pi | pi <- parties]
+
+phase2SharesFromInputs :: (NumClass a, RandomGen g) => [a] -> ShamirParams a -> g -> ([Phase2Share a], g)
+phase2SharesFromInputs inputs p g = (phase2Shares, g')
+  where
+    phase2Shares = map (createPhase2Share p) phase1SharesReceived
+    phase1SharesReceived = transpose phase1SharesCreated
+    (phase1SharesCreated, g') = createPhase1SharesFromInputs inputs p g
+    
 createPhase1SharesFromInputs :: (NumClass a, RandomGen g) =>
   [a] -> ShamirParams a -> g -> ([[Phase1Share a]], g)
 createPhase1SharesFromInputs []     _ g = ([], g)
@@ -94,3 +108,10 @@ createPhase1SharesFromInputs (i:is) p g = (shares:rest, g'')
   where
     (shares, g') = createPhase1Shares i p g
     (rest, g'')  = createPhase1SharesFromInputs is p g'
+
+randomParties :: (NumClass a, RandomGen g) => 
+  (a, a) -> (a, a) -> g -> [a]
+randomParties partyIdRange numRange g = parties
+  where
+    (parties, _)     = randomRUs numParties partyIdRange g'
+    (numParties, g') = randomR numRange g
