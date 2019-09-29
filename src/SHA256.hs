@@ -17,9 +17,8 @@ import SHA256.RepConv
 
 processChunks :: Digest -> [Chunk] -> Digest
 processChunks d []     = d
-processChunks d (c:cs) = processChunks (compress ks ws d) cs
+processChunks d (c:cs) = processChunks (compress ws d) cs
   where
-    ks = roundConstants
     ws = messageSchedule c
 
 padAndChunk :: ByteString -> [Chunk]
