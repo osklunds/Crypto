@@ -44,8 +44,8 @@ Allows multiple parties to calculate the sum of their inputs without revealing t
 Implementation of SHA256. The terminology follows closely to that of the [Wikipedia article](https://en.wikipedia.org/wiki/SHA-2). You need to install the package `cryptohash` with e.g. `cabal install cryptohash`. 
 
 - `Compression` The inner compression loop.
-- `MessageSchedule` Creation of the message schedule array.
 - `Constants` Round constants for the compression loop and the initial hash values.
+- `MessageSchedule` Creation of the message schedule array.
 - `Padding`  Padding (pre-processing) of the byte string to be hashed.
 - `RepConv` Converting between different representations of words and lists of words.
 
