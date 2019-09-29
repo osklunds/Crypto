@@ -11,21 +11,20 @@ import Numeric
 import Tools
 
 import Math.Divisibility
-import SHA256.Types
 import SHA256.RepConv
 
-appendOne :: ByteString -> ByteString
+pad :: [Word8] -> [Word8]
+pad bs = appendLength bs . appendZeros . appendOne $ bs
+
+appendOne :: [Word8] -> [Word8]
 appendOne = (++ [128])
 
-appendZeros :: ByteString -> ByteString
+appendZeros :: [Word8] -> [Word8]
 appendZeros bs
-  | isMultiple = bs
-  | otherwise  = appendZeros (bs ++ [0])
+  | is448Mod512 = bs
+  | otherwise   = appendZeros (bs ++ [0])
   where
-    isMultiple = 512 `divides` (length bs * 8 + 64)
+    is448Mod512 = (length bs * 8) `mod` 512 == 448
 
-appendLength :: ByteString -> ByteString -> ByteString
-appendLength bs = (++ (w64ToW8x8 $ 8 * length bs))
-
-pad :: ByteString -> ByteString
-pad bs = appendLength bs . appendZeros . appendOne $ bs
+appendLength :: [Word8] -> [Word8] -> [Word8]
+appendLength bs = (++ (w64ToW8x8 $ length bs * 8))
