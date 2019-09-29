@@ -133,20 +133,6 @@ beta_poly numX numC q g = (xVals, coeffs, p0)
     coeffs      = take numC $ randomRs (0, q-1) g'
     p0          = head coeffs
 
-randomRUs :: (NumClass a, RandomGen g) => a -> (a, a) -> g -> ([a], g)
-randomRUs 0 _     g = ([], g)
-randomRUs n range g = (this:rest, g'')
-  where
-    (rest, g')  = randomRUs (n-1) range g
-    (this, g'') = randomRNotIn rest range g'
-
-randomRNotIn :: (NumClass a, RandomGen g) => [a] -> (a, a) -> g -> (a, g)
-randomRNotIn rs range g
-  | r `elem` rs = randomRNotIn rs range g'
-  | otherwise   = (r, g')
-  where
-    (r, g') = randomR range g
-
 multMod :: Integral a => a -> a -> a -> a
 multMod q a b = a*b `mod` q
 
