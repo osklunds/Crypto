@@ -42,9 +42,9 @@ All of them create their phase 1 shares and hand them out.
 
 With the shares from the other parties received, they calculate the phase 2 shares.
 
-> alicePhase2Share = createPhase2Share alice_receivedShares params
-> bobPhase2Share = createPhase2Share bob_receivedShares params
-> charliePhase2Share = createPhase2Share charlie_receivedShares params
+> alicePhase2Share = createPhase2Share params alice_receivedShares
+> bobPhase2Share = createPhase2Share params bob_receivedShares
+> charliePhase2Share = createPhase2Share params charlie_receivedShares
 
 These phase 2 shares are sent to everyone. So as an example, we let Alice calculate the sum.
 
