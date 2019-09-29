@@ -4,12 +4,14 @@ module SecretSum
 )
 where
 
+import Prelude hiding (length)
 import System.Random
 
 import Shamir
 import Math.NumClass
+import Tools
 
-
+-- First is val, second is party
 data Phase1Share a = Phase1Share a a
 
 instance Show a => Show (Phase1Share a) where
@@ -26,16 +28,31 @@ createPhase1Shares x p g = (phase1Shares, g')
 shamirShareToPhase1Share :: ShareIdPair a -> Phase1Share a
 shamirShareToPhase1Share (ShareIdPair s p) = Phase1Share s p
 
+
 -- First is val, second is party
 data Phase2Share a = Phase2Share a a
 
-{-
-createPhase2Share :: NumClass a => [ShareIdPair a] -> ShamirParams a
- -> Phase2Share a
-createPhase2Share [] _ = Phase2Share 0 0
-createPhase2Share ((ShareIdPair s _):pairs) p@(ShamirParams n t q) = Phase2Share ((s + createPhase2Share pairs p) `mod` q) 1
+instance Show a => Show (Phase2Share a) where
+  show (Phase2Share s p) = "<Phase2Share. Share = " ++ show s ++ 
+                           ", Party = " ++ show p ++ ">"
 
 
-createPhase2Share' :: NumClass a => [a] -> a -> a
-createPhase2Share' shares = sum shares `mod` q
--}
+createPhase2Share :: NumClass a => [Phase1Share a] -> ShamirParams a
+  -> Phase2Share a
+createPhase2Share shares (ShamirParams n _ q)
+  | length shares /= n = error "Need shares from all parties"
+  | otherwise          = Phase2Share p s
+  where
+    p = partyFromShares shares
+    s = sum [s | (Phase1Share s _) <- shares] `mod` q
+
+-- Finds the single party who the shares belong to. If multiple
+-- parties, will exit the program.
+partyFromShares :: NumClass a => [Phase1Share a] -> a
+partyFromShares []                = error "No shares"
+partyFromShares [Phase1Share _ p] = p
+partyFromShares ((Phase1Share _ p):shares)
+  | p == p'   = p
+  | otherwise = error "Different parties"
+  where
+    p' = partyFromShares shares
