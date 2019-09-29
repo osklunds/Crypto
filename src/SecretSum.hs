@@ -1,6 +1,9 @@
 
 module SecretSum
-(
+( Phase1Share(..)
+, createPhase1Shares
+, createPhase2Share
+, calculateSum
 )
 where
 
@@ -41,7 +44,7 @@ createPhase2Share :: NumClass a => [Phase1Share a] -> ShamirParams a
   -> Phase2Share a
 createPhase2Share shares (ShamirParams n _ q)
   | length shares /= n = error "Need shares from all parties"
-  | otherwise          = Phase2Share p s
+  | otherwise          = Phase2Share s p
   where
     p = partyFromShares shares
     s = sum [s | (Phase1Share s _) <- shares] `mod` q
