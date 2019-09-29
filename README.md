@@ -37,7 +37,7 @@ Implementation of Shamir's Secret Sharing. Check `Shamir.Example` for example us
 
 ### SecretSum
 
-Allows multiple parties to calculate the sum of their inputs without revealing their input to anyone else.
+Allows multiple parties to calculate the sum of their inputs without revealing their input to anyone else. Check `SecretSum.Example` for example usage, where Alice and her friends compute a secret sum together.
 
 ### SHA256
 
