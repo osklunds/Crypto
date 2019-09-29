@@ -36,15 +36,13 @@ Implementation of Shamir's Secret Sharing. Check `Shamir.Example` for example us
 
 ### SHA256
 
-Implementation of SHA256. The terminology follows closely to that of the [Wikipedia article](https://en.wikipedia.org/wiki/SHA-2).
+Implementation of SHA256. The terminology follows closely to that of the [Wikipedia article](https://en.wikipedia.org/wiki/SHA-2). You need to install the package `cryptohash` with e.g. `cabal install cryptohash`. 
 
-- `Compression` Inner compression loop.
+- `Compression` The inner compression loop.
 - `MessageSchedule` Creation of the message schedule array.
-- `Constants` Round constants for the compression and initial hash values for the Merkle-Damgård iteration.
-- `Padding`  Pre-processing of the byte string to be hashed.
+- `Constants` Round constants for the compression loop and the initial hash values.
+- `Padding`  Padding (pre-processing) of the byte string to be hashed.
 - `RepConv` Converting between different representations of words and lists of words.
-- `Types` Type-synonyms for common lists of words.
-- `Test` Comparsion between this implementation and a library function. This module requires the package `Crypto.Hash.SHA256` which can be installed with `cabal install cryptohash`.
 
 ### Tools
 
