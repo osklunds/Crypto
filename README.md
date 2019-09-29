@@ -5,6 +5,7 @@ Implementations of cryptographic algorithms in Haskell. So far I have implemente
 
 - Textbook [RSA](https://en.wikipedia.org/wiki/RSA_(cryptosystem))
 - [Shamir's Secret Sharing](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing)
+- Secret addition of numbers using [Secure Multi-Party Computation](https://en.wikipedia.org/wiki/Secure_multi-party_computation)
 - [SHA256](https://en.wikipedia.org/wiki/SHA-2)
 
 ## How to run
@@ -33,6 +34,10 @@ Implementation of textbook RSA. Generation of keys, encryption, decryption, sign
 ### Shamir
 
 Implementation of Shamir's Secret Sharing. Check `Shamir.Example` for example usage, where Alice shares a secret with her friends.
+
+### SecretSum
+
+Allows multiple parties to calculate the sum of their inputs without revealing their input to anyone else.
 
 ### SHA256
 
