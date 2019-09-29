@@ -5,6 +5,7 @@ module Shamir
 , validParams
 , share
 , recover
+, beta
 )
 where
 

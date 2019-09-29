@@ -56,3 +56,11 @@ partyFromShares ((Phase1Share _ p):shares)
   | otherwise = error "Different parties"
   where
     p' = partyFromShares shares
+
+calculateSum :: NumClass a => [Phase2Share a] -> ShamirParams a -> a
+calculateSum shares (ShamirParams _ _ q) = summed
+  where
+    summed = sum (zipWith (*) bis sis) `mod` q
+    bis = map (beta pis q) pis
+    pis = map (\(Phase2Share _ pi) -> pi) shares
+    sis = map (\(Phase2Share si _) -> si) shares
