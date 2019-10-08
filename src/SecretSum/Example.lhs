@@ -1,5 +1,5 @@
 
-This is a short example deonstrating my implementation of SecretSum.
+This is a short example demonstrating my implementation of SecretSum.
 
 > module SecretSum.Example
 > (
